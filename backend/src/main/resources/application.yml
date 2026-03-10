@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: ai-chronicle-system
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/chronicle}
+    username: ${SPRING_DATASOURCE_USERNAME:chronicle}
+    password: ${SPRING_DATASOURCE_PASSWORD:chronicle123}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# MinIO
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin123}
+  bucket: chronicle-files
+
+# JWT (需至少32字符的密钥)
+jwt:
+  secret: ${JWT_SECRET:Y2hyb25pY2xlLXNlY3JldC1rZXktZm9yLWp3dC10b2tlbi1nZW5lcmF0aW9u}
+  expiration: 86400000  # 24 hours
+
+# AI Service
+ai:
+  service:
+    url: ${AI_SERVICE_URL:http://localhost:8000}
+
+server:
+  port: 8080
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
