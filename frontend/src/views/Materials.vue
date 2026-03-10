@@ -109,19 +109,15 @@ async function load() {
 }
 
 async function upload() {
-  if (!uploadForm.file) return ElMessage.warning('请选择文件')
   uploading.value = true
   try {
-    const fd = new FormData()
-    fd.append('file', uploadForm.file)
-    fd.append('title', uploadForm.title)
-    fd.append('source', uploadForm.source)
-    fd.append('year', uploadForm.year)
-    fd.append('type', uploadForm.type)
-    await api.post('/api/materials/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-    ElMessage.success('上传成功')
+    const payload = { title: uploadForm.title || '新资料', source: uploadForm.source, year: uploadForm.year, type: uploadForm.type }
+    await api.post('/api/materials', payload)
+    ElMessage.success('保存成功')
     showUpload.value = false
     load()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.error || e.message || '保存失败')
   } finally {
     uploading.value = false
   }
