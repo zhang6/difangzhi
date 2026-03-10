@@ -7,7 +7,7 @@ permissions:
 
 on:
   push:
-    branches: [main, "cursor/-bc-c4323d66-ea49-4840-8495-cf22bcb4a000-44f8"]
+    branches: [main]
 
 jobs:
   deploy:
