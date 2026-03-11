@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase } from '@/api/supabase'
+import { post, get, put } from '@/api/http'
 import type { UserProfile, UserRole } from '@/types'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -16,35 +16,22 @@ export const useAuthStore = defineStore('auth', () => {
   const userRole = computed(() => user.value?.role as UserRole)
 
   async function login(username: string, password: string) {
-    const { data, error } = await supabase
-      .from('yb_users')
-      .select('*')
-      .eq('username', username)
-      .single()
-
-    if (error || !data) throw new Error('用户名或密码错误')
-
-    const bcryptModule = await import('bcryptjs')
-    const bcrypt = bcryptModule.default || bcryptModule
-    const valid = await bcrypt.compare(password, data.password)
-    if (!valid) throw new Error('用户名或密码错误')
-
-    const tokenValue = btoa(JSON.stringify({ id: data.id, ts: Date.now() }))
+    const resp = await post<{ token: string; user: any }>('/api/auth/login', { username, password })
+    token.value = resp.token
     user.value = {
-      id: data.id,
-      username: data.username,
-      name: data.name,
-      role: data.role,
-      phone: data.phone,
-      email: data.email,
-      avatar_color: data.avatar_color,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      id: resp.user.id,
+      username: resp.user.username,
+      name: resp.user.name,
+      role: resp.user.role,
+      avatar_color: resp.user.avatarColor,
+      phone: resp.user.phone,
+      email: resp.user.email,
+      created_at: '',
+      updated_at: '',
     }
-    token.value = tokenValue
+    localStorage.setItem('yb_token', resp.token)
     localStorage.setItem('yb_user', JSON.stringify(user.value))
-    localStorage.setItem('yb_token', tokenValue)
-    return data
+    return resp
   }
 
   function logout() {
@@ -56,35 +43,28 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function updateProfile(updates: Partial<UserProfile>) {
     if (!user.value) return
-    const { error } = await supabase
-      .from('yb_users')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', user.value.id)
-    if (error) throw error
-    Object.assign(user.value, updates)
+    const resp = await put<any>(`/api/users/${user.value.id}`, updates)
+    Object.assign(user.value, { name: resp.name, phone: resp.phone, email: resp.email })
     localStorage.setItem('yb_user', JSON.stringify(user.value))
   }
 
   async function fetchAllUsers(): Promise<UserProfile[]> {
-    const { data, error } = await supabase
-      .from('yb_users')
-      .select('id, username, name, role, phone, email, created_at, updated_at')
-      .order('created_at')
-    if (error) throw error
-    return data || []
+    const data = await get<any[]>('/api/users')
+    return data.map((u: any) => ({
+      id: u.id,
+      username: u.username,
+      name: u.name,
+      role: u.role,
+      phone: u.phone,
+      email: u.email,
+      avatar_color: u.avatarColor,
+      created_at: u.createdAt,
+      updated_at: u.updatedAt,
+    }))
   }
 
   return {
-    user,
-    token,
-    isLoggedIn,
-    isAdmin,
-    isManager,
-    userName,
-    userRole,
-    login,
-    logout,
-    updateProfile,
-    fetchAllUsers,
+    user, token, isLoggedIn, isAdmin, isManager, userName, userRole,
+    login, logout, updateProfile, fetchAllUsers,
   }
 })

@@ -1,80 +1,81 @@
 package com.chronicle.service;
 
-import com.chronicle.entity.Entry;
-import com.chronicle.entity.EntryVersion;
-import com.chronicle.entity.Entry.EntryStatus;
-import com.chronicle.repository.EntryRepository;
-import com.chronicle.repository.EntryVersionRepository;
+import com.chronicle.entity.*;
+import com.chronicle.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class EntryService {
 
-    private final EntryRepository entryRepository;
-    private final EntryVersionRepository versionRepository;
-    private final AiServiceClient aiServiceClient;
+    private final YbEntryRepository entryRepo;
+    private final YbEntryVersionRepository versionRepo;
+    private final YbAnnotationRepository annotationRepo;
+    private final YbHistoryDataRepository historyRepo;
 
-    public List<Entry> search(Long catalogId, EntryStatus status) {
-        if (catalogId != null && status != null) {
-            return entryRepository.findByCatalogId(catalogId).stream()
-                .filter(e -> e.getStatus() == status)
-                .toList();
-        }
-        if (catalogId != null) {
-            return entryRepository.findByCatalogId(catalogId);
-        }
-        if (status != null) {
-            return entryRepository.findByStatus(status);
-        }
-        return entryRepository.findAll();
+    public List<YbEntry> listByOutline(UUID outlineId) {
+        return entryRepo.findByOutlineIdOrderBySortOrder(outlineId);
     }
 
-    public Optional<Entry> findById(Long id) {
-        return entryRepository.findById(id);
+    public Page<YbEntry> listByOutlinePaged(UUID outlineId, Pageable pageable) {
+        return entryRepo.findByOutlineId(outlineId, pageable);
     }
 
-    public Entry save(Entry entry) {
-        if (entry.getId() != null) {
-            entryRepository.findById(entry.getId()).ifPresent(existing -> {
-                if (!existing.getContent().equals(entry.getContent())) {
-                    EntryVersion v = new EntryVersion();
-                    v.setEntryId(entry.getId());
-                    v.setVersion(existing.getVersion());
-                    v.setContent(existing.getContent());
-                    v.setAuthorId(existing.getAuthorId());
-                    versionRepository.save(v);
-                    entry.setVersion(existing.getVersion() + 1);
-                }
-            });
-        }
-        return entryRepository.save(entry);
+    public YbEntry getById(UUID id) {
+        return entryRepo.findById(id).orElseThrow();
     }
 
-    public Entry updateStatus(Long id, EntryStatus status) {
-        Entry entry = entryRepository.findById(id).orElseThrow();
-        entry.setStatus(status);
-        return entryRepository.save(entry);
+    public YbEntry create(YbEntry entry) {
+        return entryRepo.save(entry);
     }
 
-    public List<EntryVersion> getVersions(Long id) {
-        return versionRepository.findByEntryIdOrderByVersionDesc(id);
+    public YbEntry update(UUID id, YbEntry updates) {
+        YbEntry e = entryRepo.findById(id).orElseThrow();
+        if (updates.getTitle() != null) e.setTitle(updates.getTitle());
+        if (updates.getOriginalContent() != null) e.setOriginalContent(updates.getOriginalContent());
+        if (updates.getAiContent() != null) e.setAiContent(updates.getAiContent());
+        if (updates.getStatus() != null) e.setStatus(updates.getStatus());
+        if (updates.getSortOrder() != null) e.setSortOrder(updates.getSortOrder());
+        return entryRepo.save(e);
     }
 
-    public Map<String, String> aiGenerate(Long id) {
-        Entry entry = entryRepository.findById(id).orElseThrow();
-        String generated = aiServiceClient.generateEntry(entry.getTitle(), entry.getContent());
-        entry.setContent(generated);
-        entry.setStatus(EntryStatus.IN_PROGRESS);
-        entryRepository.save(entry);
-        Map<String, String> result = new HashMap<>();
-        result.put("content", generated);
-        return result;
+    @Transactional
+    public void delete(UUID id) {
+        versionRepo.deleteByEntryId(id);
+        annotationRepo.deleteByEntryId(id);
+        entryRepo.deleteById(id);
+    }
+
+    public List<YbEntryVersion> getVersions(UUID entryId) {
+        return versionRepo.findByEntryIdOrderByVersionDesc(entryId);
+    }
+
+    public YbEntryVersion createVersion(YbEntryVersion version) {
+        return versionRepo.save(version);
+    }
+
+    public List<YbAnnotation> getAnnotations(UUID entryId) {
+        return annotationRepo.findByEntryIdOrderByCreatedAtDesc(entryId);
+    }
+
+    public YbAnnotation createAnnotation(YbAnnotation annotation) {
+        return annotationRepo.save(annotation);
+    }
+
+    public YbAnnotation updateAnnotationStatus(UUID id, String status) {
+        YbAnnotation a = annotationRepo.findById(id).orElseThrow();
+        a.setProcessStatus(status);
+        return annotationRepo.save(a);
+    }
+
+    public List<YbHistoryData> searchHistory(String keyword) {
+        return historyRepo.searchByKeyword(keyword);
     }
 }

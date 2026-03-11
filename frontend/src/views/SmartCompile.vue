@@ -187,6 +187,7 @@ import { fetchYearbooks } from '@/api/yearbook'
 import { fetchOutlineTree } from '@/api/outline'
 import { fetchEntries, createEntry, updateEntry, fetchVersions, createVersion, fetchHistoryData } from '@/api/entry'
 import { aiGenerateEntry, aiRewrite, aiExpand, aiDetectConflicts, aiBotAnswer } from '@/api/ai'
+import { del } from '@/api/http'
 import { STATUS_LABEL, STATUS_TYPE } from '@/types'
 import type { Yearbook, OutlineNode, Entry, EntryVersion, HistoryData } from '@/types'
 
@@ -285,6 +286,7 @@ async function handleAIGenerate() {
   aiLoading.value = true
   try {
     const result = await aiGenerateEntry(
+      activeEntry.value.id,
       activeEntry.value.original_content || '',
       historyData.value.map((h) => h.content).join('\n')
     )

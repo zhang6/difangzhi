@@ -87,7 +87,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
-import { supabase } from '@/api/supabase'
+import { get } from '@/api/http'
 import { STATUS_LABEL, STATUS_TYPE } from '@/types'
 
 const router = useRouter()
@@ -138,20 +138,14 @@ async function loadTasks() {
   if (!auth.user?.id) return
   tasksLoading.value = true
   try {
-    const { data, error } = await supabase
-      .from('yb_outlines')
-      .select('id, title, status, unit_name, yearbook_id, yearbook:yb_yearbooks!yb_outlines_yearbook_id_fkey(name)')
-      .eq('assigned_user_id', auth.user.id)
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
+    const data = await get<any[]>('/api/outlines/my-tasks', { userId: auth.user.id })
     tasks.value = (data || []).map((item: any) => ({
       outline_id: item.id,
       outline_title: item.title,
-      yearbook_name: item.yearbook?.name || '',
-      yearbook_id: item.yearbook_id,
+      yearbook_name: '',
+      yearbook_id: item.yearbookId || item.yearbook_id,
       status: item.status,
-      unit_name: item.unit_name || '',
+      unit_name: item.unitName || item.unit_name || '',
     }))
   } catch {
     tasks.value = []

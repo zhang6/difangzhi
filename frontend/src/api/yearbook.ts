@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { get, post, put, del } from './http'
 import type { Yearbook, PaginatedResult } from '@/types'
 
 export async function fetchYearbooks(params: {
@@ -7,66 +7,45 @@ export async function fetchYearbooks(params: {
   keyword?: string
   status?: string
 }): Promise<PaginatedResult<Yearbook>> {
-  let query = supabase.from('yb_yearbooks').select('*', { count: 'exact' })
-
-  if (params.keyword) {
-    query = query.ilike('name', `%${params.keyword}%`)
+  const resp = await get<any>('/api/yearbooks', params)
+  return {
+    data: (resp.data || []).map(mapYearbook),
+    total: resp.total || 0,
   }
-  if (params.status && params.status !== 'all') {
-    query = query.eq('status', params.status)
-  }
-
-  const from = (params.page - 1) * params.pageSize
-  const to = from + params.pageSize - 1
-
-  const { data, count, error } = await query
-    .order('created_at', { ascending: false })
-    .range(from, to)
-
-  if (error) throw error
-  return { data: data || [], total: count || 0 }
 }
 
-export async function createYearbook(yb: Partial<Yearbook>) {
-  const { data, error } = await supabase.from('yb_yearbooks').insert(yb).select().single()
-  if (error) throw error
-  return data
+export async function createYearbook(yb: any) {
+  return mapYearbook(await post<any>('/api/yearbooks', yb))
 }
 
-export async function updateYearbook(id: string, updates: Partial<Yearbook>) {
-  const { data, error } = await supabase
-    .from('yb_yearbooks')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) throw error
-  return data
+export async function updateYearbook(id: string, updates: any) {
+  return mapYearbook(await put<any>(`/api/yearbooks/${id}`, updates))
 }
 
 export async function deleteYearbook(id: string) {
-  await supabase.from('yb_yearbook_managers').delete().eq('yearbook_id', id)
-  await supabase.from('yb_outlines').delete().eq('yearbook_id', id)
-  const { error } = await supabase.from('yb_yearbooks').delete().eq('id', id)
-  if (error) throw error
+  await del(`/api/yearbooks/${id}`)
 }
 
 export async function fetchManagers(yearbookId: string) {
-  const { data, error } = await supabase
-    .from('yb_yearbook_managers')
-    .select('*, user:yb_users(name)')
-    .eq('yearbook_id', yearbookId)
-  if (error) throw error
-  return data || []
+  return get<any[]>(`/api/yearbooks/${yearbookId}/managers`)
 }
 
 export async function setManager(yearbookId: string, userId: string) {
-  await supabase.from('yb_yearbook_managers').delete().eq('yearbook_id', yearbookId)
-  const { data, error } = await supabase
-    .from('yb_yearbook_managers')
-    .insert({ yearbook_id: yearbookId, user_id: userId })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+  return post<any>(`/api/yearbooks/${yearbookId}/managers`, { userId })
+}
+
+function mapYearbook(raw: any): Yearbook {
+  return {
+    id: raw.id,
+    name: raw.name,
+    start_date: raw.startDate || raw.start_date,
+    end_date: raw.endDate || raw.end_date,
+    cover_type: raw.coverType || raw.cover_type || 'default_1',
+    cover_url: raw.coverUrl || raw.cover_url,
+    status: raw.status || 'not_started',
+    progress: raw.progress || 0,
+    created_by: raw.createdBy || raw.created_by,
+    created_at: raw.createdAt || raw.created_at || '',
+    updated_at: raw.updatedAt || raw.updated_at || '',
+  }
 }

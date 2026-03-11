@@ -1,30 +1,42 @@
 package com.chronicle.controller;
 
-import com.chronicle.entity.User;
-import com.chronicle.repository.UserRepository;
+import com.chronicle.entity.YbUser;
+import com.chronicle.repository.YbUserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final YbUserRepository userRepo;
 
     @GetMapping
-    public List<User> list() {
-        return userRepository.findAll();
+    public List<YbUser> list() {
+        List<YbUser> users = userRepo.findAll();
+        users.forEach(u -> u.setPassword(null));
+        return users;
     }
 
-    @PostMapping
-    public User create(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    @GetMapping("/{id}")
+    public YbUser get(@PathVariable UUID id) {
+        YbUser u = userRepo.findById(id).orElseThrow();
+        u.setPassword(null);
+        return u;
+    }
+
+    @PutMapping("/{id}")
+    public YbUser update(@PathVariable UUID id, @RequestBody YbUser updates) {
+        YbUser u = userRepo.findById(id).orElseThrow();
+        if (updates.getName() != null) u.setName(updates.getName());
+        if (updates.getPhone() != null) u.setPhone(updates.getPhone());
+        if (updates.getEmail() != null) u.setEmail(updates.getEmail());
+        YbUser saved = userRepo.save(u);
+        saved.setPassword(null);
+        return saved;
     }
 }
