@@ -1,51 +1,46 @@
-@import "tailwindcss";
-
-@theme {
-  --color-primary: #1a90ff;
-  --color-primary-light: #e8f4ff;
-  --color-bg-light: #f5f7f8;
-  --color-bg-dark: #0f1923;
-  --font-family-display: 'Public Sans', 'Noto Sans SC', system-ui, sans-serif;
+:root {
+  --yb-primary: #409eff;
+  --yb-bg: #f5f7fa;
+  --yb-sidebar-bg: #fff;
+  --yb-header-height: 60px;
 }
 
 body {
-  font-family: var(--font-family-display);
+  margin: 0;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background: var(--yb-bg);
+  -webkit-font-smoothing: antialiased;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
+::-webkit-scrollbar-thumb {
+  background: #dcdfe6;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
   background: transparent;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
+
+/* Element Plus 覆盖 */
+.el-card {
+  border-radius: 8px;
 }
 
-.yearbook-card:hover {
-  transform: translateY(-4px);
-  transition: all 0.3s ease;
+/* 富文本编辑器样式 */
+.ql-editor {
+  min-height: 200px;
+  font-size: 14px;
+  line-height: 1.8;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+/* 过渡动画 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
 }
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-.slide-enter-from {
-  transform: translateY(10px);
-  opacity: 0;
-}
-.slide-leave-to {
-  transform: translateY(-10px);
+.fade-enter-from, .fade-leave-to {
   opacity: 0;
 }

@@ -1,480 +1,367 @@
 <template>
-  <div class="min-h-screen bg-[#f5f7f8]">
-    <!-- No yearbook selected -->
-    <div
-      v-if="!yearbookStore.currentYearbook"
-      class="flex flex-col items-center justify-center py-24 text-slate-500"
-    >
-      <span class="material-symbols-outlined text-7xl mb-4 text-slate-300">account_tree</span>
-      <p class="text-lg mb-6">请先从年鉴管理选择需要梳理的大纲</p>
-      <router-link
-        to="/yearbooks"
-        class="px-5 py-2.5 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all flex items-center gap-2"
-      >
-        <span class="material-symbols-outlined text-xl">arrow_back</span>
-        返回年鉴管理
-      </router-link>
+  <div class="outline-manage">
+    <div class="page-header">
+      <h2>大纲管理</h2>
+      <div class="header-actions">
+        <el-select v-model="selectedYearbookId" placeholder="选择年鉴" style="width: 220px" @change="loadOutline">
+          <el-option v-for="yb in yearbookList" :key="yb.id" :label="yb.name" :value="yb.id" />
+        </el-select>
+        <template v-if="selectedYearbookId && auth.isAdmin">
+          <el-button type="primary" :icon="Plus" @click="addRootNode">添加章节</el-button>
+          <el-button :icon="Upload" @click="importVisible = true">导入大纲</el-button>
+        </template>
+      </div>
     </div>
 
-    <template v-else>
-      <!-- Top bar -->
-      <div class="bg-white border-b border-slate-200 px-6 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <span class="text-slate-700 font-medium">正在编纂：{{ yearbookStore.currentYearbook?.name || '未命名年鉴' }}</span>
-            <div class="w-48 h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div
-                class="h-full rounded-full bg-primary transition-all"
-                :style="{ width: `${outlineProgress}%` }"
-              />
-            </div>
-            <span class="text-sm text-slate-600">{{ outlineProgress }}%</span>
-          </div>
-          <button
-            @click="showImportDialog = true"
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all"
-          >
-            <span class="material-symbols-outlined">upload_file</span>
-            导入大纲
-          </button>
-        </div>
-      </div>
+    <el-card v-loading="loading" shadow="never">
+      <el-empty v-if="!loading && !selectedYearbookId" description="请先选择一个年鉴" />
+      <el-empty v-else-if="!loading && treeData.length === 0" description="暂无大纲数据" />
 
-      <!-- Help tooltip -->
-      <div class="max-w-5xl mx-auto px-6 pt-4 flex justify-end">
-        <div class="relative" ref="helpRef">
-          <button
-            @click="showHelp = !showHelp"
-            class="p-2 rounded-lg text-slate-400 hover:text-primary hover:bg-slate-100 transition-colors"
-          >
-            <span class="material-symbols-outlined text-xl">help</span>
-          </button>
-          <Transition
-            enter-active-class="transition-all duration-200 ease-out"
-            enter-from-class="opacity-0 translate-y-2"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition-all duration-150 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-2"
-          >
-            <div
-              v-if="showHelp"
-              class="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-40 p-4 text-sm text-slate-600"
-            >
-              <p class="font-medium text-slate-800 mb-2">使用提示</p>
-              <ul class="space-y-1.5 list-disc list-inside">
-                <li>可拖拽调整顺序</li>
-                <li>点击编辑修改标题</li>
-                <li>支持最多3级目录</li>
-                <li>子章节可分配负责人</li>
-                <li>支持智能编纂跳转</li>
-              </ul>
+      <el-tree
+        v-else
+        :data="treeData"
+        node-key="id"
+        default-expand-all
+        :expand-on-click-node="false"
+        :props="{ children: 'children', label: 'title' }"
+      >
+        <template #default="{ node, data }">
+          <div class="tree-node">
+            <div class="node-content">
+              <span class="node-title">{{ data.title }}</span>
+              <el-tag :type="(STATUS_TYPE[data.status] as any) || 'info'" size="small">
+                {{ STATUS_LABEL[data.status] || data.status }}
+              </el-tag>
+              <span v-if="data.assigned_user_name" class="node-assignee">
+                <el-icon><User /></el-icon>
+                {{ data.assigned_user_name }}
+              </span>
+              <span v-if="data.unit_name" class="node-unit">
+                <el-icon><OfficeBuilding /></el-icon>
+                {{ data.unit_name }}
+              </span>
             </div>
-          </Transition>
-        </div>
-      </div>
+            <div v-if="auth.isAdmin" class="node-actions">
+              <el-button text size="small" type="primary" @click.stop="addChildNode(data)">
+                添加子节点
+              </el-button>
+              <el-button text size="small" type="primary" @click.stop="editNode(data)">
+                编辑
+              </el-button>
+              <el-button text size="small" type="primary" @click.stop="assignNode(data)">
+                指派
+              </el-button>
+              <el-button text size="small" type="danger" @click.stop="removeNode(data)">
+                删除
+              </el-button>
+            </div>
+          </div>
+        </template>
+      </el-tree>
+    </el-card>
 
-      <!-- Outline tree area -->
-      <div class="max-w-5xl mx-auto p-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
-            <span class="flex items-center gap-2 font-medium text-slate-800">
-              大纲目录
-              <button
-                @click="showHelp = !showHelp"
-                class="p-1 rounded text-slate-400 hover:text-primary hover:bg-slate-100 transition-colors"
-              >
-                <span class="material-symbols-outlined text-lg">help</span>
-              </button>
-            </span>
-            <button
-              v-if="rootOutlines.length === 0"
-              @click="addSibling(null)"
-              class="text-sm px-3 py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 font-medium"
-            >
-              <span class="material-symbols-outlined text-lg">add</span>
-              添加根章节
-            </button>
-          </div>
-          <div class="p-4">
-            <OutlineTreeItem
-              v-for="item in rootOutlines"
-              :key="item.id"
-              :item="item"
-              :all-items="outlines"
-              :users="users"
-              :level="0"
-              :max-level="3"
-              @move-up="moveUp"
-              @move-down="moveDown"
-              @delete="deleteOutline"
-              @edit="startEdit"
-              @add-sibling="addSibling"
-              @assign="openAssignDialog"
-              @smart-compile="goToSmartCompile"
-              @update="updateOutline"
-            />
-          </div>
-        </div>
-      </div>
+    <!-- 添加/编辑节点 -->
+    <el-dialog v-model="nodeDialogVisible" :title="nodeIsEdit ? '编辑节点' : '添加节点'" width="480px" destroy-on-close>
+      <el-form ref="nodeFormRef" :model="nodeForm" :rules="nodeRules" label-width="80px">
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="nodeForm.title" placeholder="请输入标题" />
+        </el-form-item>
+        <el-form-item label="供稿单位">
+          <el-input v-model="nodeForm.unit_name" placeholder="如：省委办公厅" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="nodeForm.status" style="width: 100%">
+            <el-option label="未开始" value="not_started" />
+            <el-option label="编纂中" value="in_progress" />
+            <el-option label="已提交" value="submitted" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="nodeDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleNodeSubmit">确定</el-button>
+      </template>
+    </el-dialog>
 
-      <!-- Import dialog -->
-      <Teleport to="body">
-        <div
-          v-if="showImportDialog"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          @click.self="showImportDialog = false"
-        >
-          <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <h3 class="text-lg font-semibold text-slate-900 mb-4">导入大纲</h3>
-            <div
-              :class="[
-                'border-2 border-dashed rounded-xl p-8 text-center transition-colors',
-                isDragging ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
-              ]"
-              @dragover.prevent="isDragging = true"
-              @dragleave="isDragging = false"
-              @drop.prevent="handleDrop"
-            >
-              <span class="material-symbols-outlined text-6xl text-slate-400 mb-4 block">cloud_upload</span>
-              <p class="text-slate-600 mb-1">支持 .doc / .docx 格式，≤5M</p>
-              <p class="text-sm text-slate-500 mb-4">拖拽文件到此处或点击上传</p>
-              <input
-                ref="importFileRef"
-                type="file"
-                accept=".doc,.docx"
-                class="hidden"
-                @change="handleFileSelect"
-              />
-              <button
-                v-if="!selectedFile"
-                @click="importFileRef?.click()"
-                class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
-              >
-                选择文件
-              </button>
-              <div v-else class="flex items-center justify-center gap-2 text-emerald-600">
-                <span class="material-symbols-outlined text-2xl">check_circle</span>
-                <span class="text-sm font-medium truncate max-w-[200px]">{{ selectedFile.name }}</span>
-              </div>
-            </div>
-            <div class="flex justify-end gap-3 mt-4">
-              <button
-                @click="cancelImport"
-                class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                v-if="selectedFile"
-                @click="confirmImport"
-                class="px-4 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
-              >
-                确认导入
-              </button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
+    <!-- 指派编辑 -->
+    <el-dialog v-model="assignVisible" title="任务指派" width="420px" destroy-on-close>
+      <el-form label-width="80px">
+        <el-form-item label="节点">
+          <el-input :model-value="assignTarget?.title" disabled />
+        </el-form-item>
+        <el-form-item label="指派给">
+          <el-select v-model="assignUserId" placeholder="选择编辑人员" style="width: 100%" filterable>
+            <el-option v-for="u in allUsers" :key="u.id" :label="`${u.name} (${u.role})`" :value="u.id" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="assignVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleAssign">确定</el-button>
+      </template>
+    </el-dialog>
 
-      <!-- Assign dialog -->
-      <Teleport to="body">
-        <div
-          v-if="showAssignDialog"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          @click.self="showAssignDialog = false"
-        >
-          <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-            <h3 class="text-lg font-semibold text-slate-900 mb-4">分配负责人</h3>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1.5">章节名称</label>
-              <input
-                :value="assignTarget?.title"
-                readonly
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600"
-              />
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1.5">选择负责人</label>
-              <select
-                v-model="assignUserId"
-                class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-              >
-                <option value="">请选择</option>
-                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name || u.username }}</option>
-              </select>
-            </div>
-            <div class="flex justify-end gap-3">
-              <button
-                @click="showAssignDialog = false"
-                class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                @click="confirmAssign"
-                :disabled="!assignUserId"
-                class="px-4 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
-                确认分配
-              </button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
-    </template>
+    <!-- 导入大纲 -->
+    <el-dialog v-model="importVisible" title="导入大纲" width="480px" destroy-on-close>
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom: 16px">
+        请上传大纲文件（Word格式），系统将自动解析标题层级结构。
+        当前版本采用简化解析，每行作为一个节点，缩进表示层级。
+      </el-alert>
+      <el-input
+        v-model="importText"
+        type="textarea"
+        :rows="10"
+        placeholder="手动输入大纲（每行一个节点，用缩进表示层级）
+例如：
+第一篇 总述
+  第一章 基本省情
+    第一节 地理位置
+  第二章 经济发展"
+      />
+      <template #footer>
+        <el-button @click="importVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleImport">导入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
-import { useRouter } from 'vue-router'
-import { useYearbookStore } from '@/stores/yearbook'
-import { supabase } from '@/lib/supabase'
-import OutlineTreeItem from '@/components/OutlineTreeItem.vue'
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus, Upload, User, OfficeBuilding } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+import { fetchYearbooks } from '@/api/yearbook'
+import { fetchOutlineTree, createOutlineNode, updateOutlineNode, deleteOutlineNode, batchCreateOutlineNodes } from '@/api/outline'
+import { STATUS_LABEL, STATUS_TYPE } from '@/types'
+import type { OutlineNode, Yearbook, UserProfile } from '@/types'
 
-const toast = inject('toast')
-const yearbookStore = useYearbookStore()
-const router = useRouter()
+const auth = useAuthStore()
+const loading = ref(false)
+const submitting = ref(false)
+const yearbookList = ref<Yearbook[]>([])
+const selectedYearbookId = ref('')
+const treeData = ref<OutlineNode[]>([])
+const allUsers = ref<UserProfile[]>([])
 
-const outlines = ref([])
-const users = ref([])
-const loading = ref(true)
-const showImportDialog = ref(false)
-const showAssignDialog = ref(false)
-const showHelp = ref(false)
-const isDragging = ref(false)
-const importFileRef = ref(null)
-const selectedFile = ref(null)
-const assignTarget = ref(null)
+const nodeDialogVisible = ref(false)
+const nodeIsEdit = ref(false)
+const nodeEditId = ref('')
+const nodeParentId = ref<string | null>(null)
+const nodeFormRef = ref()
+const nodeForm = reactive({ title: '', unit_name: '', status: 'not_started' as any })
+const nodeRules = { title: [{ required: true, message: '请输入标题', trigger: 'blur' }] }
+
+const assignVisible = ref(false)
+const assignTarget = ref<OutlineNode | null>(null)
 const assignUserId = ref('')
-const helpRef = ref(null)
 
-const rootOutlines = computed(() => {
-  return outlines.value
-    .filter(o => !o.parent_id)
-    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-})
+const importVisible = ref(false)
+const importText = ref('')
 
-const outlineProgress = computed(() => {
-  if (!outlines.value.length) return 0
-  const submitted = outlines.value.filter(o => o.status === 'submitted').length
-  return Math.round((submitted / outlines.value.length) * 100)
-})
+async function loadYearbooks() {
+  const result = await fetchYearbooks({ page: 1, pageSize: 100 })
+  yearbookList.value = result.data
+  if (result.data.length > 0 && !selectedYearbookId.value) {
+    selectedYearbookId.value = result.data[0].id
+    loadOutline()
+  }
+}
 
-async function fetchOutlines() {
-  const ybId = yearbookStore.currentYearbook?.id
-  if (!ybId) return
+async function loadOutline() {
+  if (!selectedYearbookId.value) return
   loading.value = true
   try {
-    const { data, error } = await supabase
-      .from('yb_outlines')
-      .select('*')
-      .eq('yearbook_id', ybId)
-      .order('sort_order', { ascending: true })
-
-    if (error) throw error
-    outlines.value = data || []
-  } catch (e) {
-    console.error('Fetch outlines error:', e)
-    outlines.value = []
-    toast?.('加载大纲失败', 'error')
+    treeData.value = await fetchOutlineTree(selectedYearbookId.value)
+  } catch (e: any) {
+    ElMessage.error('加载大纲失败')
   } finally {
     loading.value = false
   }
 }
 
-async function fetchUsers() {
+function addRootNode() {
+  nodeIsEdit.value = false
+  nodeEditId.value = ''
+  nodeParentId.value = null
+  Object.assign(nodeForm, { title: '', unit_name: '', status: 'not_started' })
+  nodeDialogVisible.value = true
+}
+
+function addChildNode(parent: OutlineNode) {
+  nodeIsEdit.value = false
+  nodeEditId.value = ''
+  nodeParentId.value = parent.id
+  Object.assign(nodeForm, { title: '', unit_name: '', status: 'not_started' })
+  nodeDialogVisible.value = true
+}
+
+function editNode(node: OutlineNode) {
+  nodeIsEdit.value = true
+  nodeEditId.value = node.id
+  nodeParentId.value = node.parent_id
+  Object.assign(nodeForm, { title: node.title, unit_name: node.unit_name || '', status: node.status })
+  nodeDialogVisible.value = true
+}
+
+async function handleNodeSubmit() {
+  const valid = await nodeFormRef.value?.validate().catch(() => false)
+  if (!valid) return
+  submitting.value = true
   try {
-    const { data, error } = await supabase.from('yb_users').select('id, username, name')
-    if (error) throw error
-    users.value = data || []
-  } catch (e) {
-    console.error('Fetch users error:', e)
-    users.value = []
-  }
-}
-
-function getChildren(parentId) {
-  return outlines.value
-    .filter(o => o.parent_id === parentId)
-    .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-}
-
-function moveUp(item) {
-  const siblings = item.parent_id
-    ? getChildren(item.parent_id)
-    : rootOutlines.value
-  const idx = siblings.findIndex(s => s.id === item.id)
-  if (idx <= 0) return
-  const prev = siblings[idx - 1]
-  swapSortOrder(item, prev)
-}
-
-function moveDown(item) {
-  const siblings = item.parent_id
-    ? getChildren(item.parent_id)
-    : rootOutlines.value
-  const idx = siblings.findIndex(s => s.id === item.id)
-  if (idx < 0 || idx >= siblings.length - 1) return
-  const next = siblings[idx + 1]
-  swapSortOrder(item, next)
-}
-
-async function swapSortOrder(a, b) {
-  const aOrder = a.sort_order ?? 0
-  const bOrder = b.sort_order ?? 0
-  await supabase.from('yb_outlines').update({ sort_order: bOrder }).eq('id', a.id)
-  await supabase.from('yb_outlines').update({ sort_order: aOrder }).eq('id', b.id)
-  fetchOutlines()
-}
-
-async function deleteOutline(item) {
-  if (!confirm(`确定要删除「${item.title}」吗？`)) return
-  try {
-    const { error } = await supabase.from('yb_outlines').delete().eq('id', item.id)
-    if (error) throw error
-    fetchOutlines()
-    toast?.('删除成功', 'success')
-  } catch (e) {
-    console.error('Delete error:', e)
-    toast?.('删除失败：' + (e.message || '未知错误'), 'error')
-  }
-}
-
-function startEdit(item) {
-  item._editing = true
-}
-
-function updateOutline(item, newTitle) {
-  item._editing = false
-  if (newTitle === item.title) return
-  supabase.from('yb_outlines').update({ title: newTitle, updated_at: new Date().toISOString() }).eq('id', item.id)
-    .then(({ error }) => {
-      if (error) throw error
-      item.title = newTitle
-      fetchOutlines()
-      toast?.('更新成功', 'success')
-    })
-    .catch(e => {
-      console.error('Update error:', e)
-      toast?.('更新失败', 'error')
-    })
-}
-
-async function addSibling(item) {
-  const parentId = item?.parent_id ?? null
-  const level = item ? ((item.level ?? 0) || 1) : 1
-  if (level > 3) {
-    toast?.('最多支持3级目录', 'error')
-    return
-  }
-  const siblings = parentId ? getChildren(parentId) : rootOutlines.value
-  const maxOrder = siblings.length ? Math.max(...siblings.map(s => s.sort_order ?? 0)) + 1 : 0
-  try {
-    const { error } = await supabase
-      .from('yb_outlines')
-      .insert({
-        yearbook_id: yearbookStore.currentYearbook.id,
-        parent_id: parentId,
-        title: '新章节',
-        level,
-        sort_order: maxOrder,
-        status: 'not_started'
+    if (nodeIsEdit.value) {
+      await updateOutlineNode(nodeEditId.value, { ...nodeForm })
+    } else {
+      const siblings = countSiblings(treeData.value, nodeParentId.value)
+      await createOutlineNode({
+        ...nodeForm,
+        yearbook_id: selectedYearbookId.value,
+        parent_id: nodeParentId.value,
+        level: nodeParentId.value ? getNodeLevel(treeData.value, nodeParentId.value) + 1 : 1,
+        sort_order: siblings,
       })
-      .select('id')
-      .single()
-    if (error) throw error
-    fetchOutlines()
-    toast?.('添加成功', 'success')
-  } catch (e) {
-    console.error('Add error:', e)
-    toast?.('添加失败：' + (e.message || '未知错误'), 'error')
+    }
+    ElMessage.success(nodeIsEdit.value ? '已更新' : '已添加')
+    nodeDialogVisible.value = false
+    loadOutline()
+  } catch (e: any) {
+    ElMessage.error(e.message || '操作失败')
+  } finally {
+    submitting.value = false
   }
 }
 
-function openAssignDialog(item) {
-  assignTarget.value = item
-  assignUserId.value = item.assigned_user_id || ''
-  showAssignDialog.value = true
+function countSiblings(nodes: OutlineNode[], parentId: string | null): number {
+  if (!parentId) return nodes.length
+  const parent = findNode(nodes, parentId)
+  return parent?.children?.length || 0
 }
 
-async function confirmAssign() {
-  if (!assignTarget.value) return
+function getNodeLevel(nodes: OutlineNode[], id: string): number {
+  const node = findNode(nodes, id)
+  return node?.level || 1
+}
+
+function findNode(nodes: OutlineNode[], id: string): OutlineNode | null {
+  for (const n of nodes) {
+    if (n.id === id) return n
+    if (n.children) {
+      const found = findNode(n.children, id)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+async function removeNode(node: OutlineNode) {
   try {
-    const { error } = await supabase
-      .from('yb_outlines')
-      .update({ assigned_user_id: assignUserId.value || null, updated_at: new Date().toISOString() })
-      .eq('id', assignTarget.value.id)
-    if (error) throw error
-    showAssignDialog.value = false
-    assignTarget.value = null
-    fetchOutlines()
-    toast?.('负责人分配成功', 'success')
-  } catch (e) {
-    console.error('Assign error:', e)
-    toast?.('分配失败：' + (e.message || '未知错误'), 'error')
+    await ElMessageBox.confirm(`确定删除「${node.title}」及其所有子节点吗？`, '删除确认', { type: 'warning' })
+    await deleteOutlineNode(node.id)
+    ElMessage.success('已删除')
+    loadOutline()
+  } catch {}
+}
+
+async function assignNode(node: OutlineNode) {
+  assignTarget.value = node
+  assignUserId.value = node.assigned_user_id || ''
+  if (allUsers.value.length === 0) {
+    allUsers.value = await auth.fetchAllUsers()
+  }
+  assignVisible.value = true
+}
+
+async function handleAssign() {
+  if (!assignTarget.value) return
+  submitting.value = true
+  try {
+    await updateOutlineNode(assignTarget.value.id, { assigned_user_id: assignUserId.value } as any)
+    ElMessage.success('指派成功')
+    assignVisible.value = false
+    loadOutline()
+  } catch (e: any) {
+    ElMessage.error(e.message || '指派失败')
+  } finally {
+    submitting.value = false
   }
 }
 
-function goToSmartCompile(item) {
-  yearbookStore.setCurrentOutline(item)
-  router.push('/compile')
-}
-
-function handleDrop(e) {
-  isDragging.value = false
-  const file = e.dataTransfer?.files?.[0]
-  if (file) processImportFile(file)
-}
-
-function handleFileSelect(e) {
-  const file = e.target.files?.[0]
-  if (file) processImportFile(file)
-  e.target.value = ''
-}
-
-function processImportFile(file) {
-  if (file.size > 5 * 1024 * 1024) {
-    toast?.('文件大小不能超过5M', 'error')
+async function handleImport() {
+  if (!importText.value.trim()) {
+    ElMessage.warning('请输入大纲内容')
     return
   }
-  const ext = file.name.split('.').pop()?.toLowerCase()
-  if (!['doc', 'docx'].includes(ext)) {
-    toast?.('仅支持 .doc / .docx 格式', 'error')
-    return
-  }
-  selectedFile.value = file
-}
+  submitting.value = true
+  try {
+    const lines = importText.value.split('\n').filter((l) => l.trim())
+    const nodes: Partial<OutlineNode>[] = []
+    const parentStack: { id: string; level: number }[] = []
+    let sortCounter = 0
 
-function cancelImport() {
-  showImportDialog.value = false
-  selectedFile.value = null
-}
+    for (const line of lines) {
+      const indent = line.search(/\S/)
+      const level = Math.floor(indent / 2) + 1
+      const title = line.trim()
+      const tempId = `temp_${sortCounter}`
 
-function confirmImport() {
-  if (!selectedFile.value) return
-  toast?.('大纲导入成功（模拟）', 'success')
-  showImportDialog.value = false
-  selectedFile.value = null
-}
+      while (parentStack.length > 0 && parentStack[parentStack.length - 1].level >= level) {
+        parentStack.pop()
+      }
 
-watch(() => yearbookStore.currentYearbook?.id, (id) => {
-  if (id) fetchOutlines()
-}, { immediate: true })
+      nodes.push({
+        yearbook_id: selectedYearbookId.value,
+        parent_id: parentStack.length > 0 ? parentStack[parentStack.length - 1].id : null,
+        title,
+        level,
+        sort_order: sortCounter++,
+        status: 'not_started',
+      })
 
-function handleClickOutside(e) {
-  if (helpRef.value && !helpRef.value.contains(e.target)) {
-    showHelp.value = false
+      parentStack.push({ id: tempId, level })
+    }
+
+    const flatNodes = nodes.map((n) => ({
+      yearbook_id: n.yearbook_id,
+      title: n.title,
+      level: n.level,
+      sort_order: n.sort_order,
+      status: n.status,
+      parent_id: null as string | null,
+    }))
+
+    await batchCreateOutlineNodes(flatNodes)
+    ElMessage.success(`已导入 ${flatNodes.length} 个节点`)
+    importVisible.value = false
+    importText.value = ''
+    loadOutline()
+  } catch (e: any) {
+    ElMessage.error(e.message || '导入失败')
+  } finally {
+    submitting.value = false
   }
 }
 
 onMounted(() => {
-  fetchUsers()
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
+  loadYearbooks()
 })
 </script>
+
+<style scoped>
+.outline-manage { max-width: 1200px; margin: 0 auto; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.page-header h2 { font-size: 22px; font-weight: 600; margin: 0; }
+.header-actions { display: flex; gap: 12px; align-items: center; }
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 0;
+}
+.node-content { display: flex; align-items: center; gap: 8px; }
+.node-title { font-weight: 500; }
+.node-assignee, .node-unit { display: flex; align-items: center; gap: 2px; font-size: 12px; color: #909399; }
+.node-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.2s; }
+.tree-node:hover .node-actions { opacity: 1; }
+</style>

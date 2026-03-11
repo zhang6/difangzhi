@@ -1,6 +1,8 @@
 node_modules
 dist
+*.local
 .env
 .env.*
 !.env.example
-*.local
+src/auto-imports.d.ts
+src/components.d.ts

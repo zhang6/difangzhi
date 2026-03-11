@@ -1,357 +1,508 @@
 <template>
-  <div class="h-screen flex flex-col overflow-hidden bg-[#f5f7f8]">
-    <!-- No outline selected -->
-    <div
-      v-if="!yearbookStore.currentOutline"
-      class="flex-1 flex flex-col items-center justify-center text-slate-500"
-    >
-      <span class="material-symbols-outlined text-7xl mb-4 text-slate-300">psychology</span>
-      <p class="text-lg mb-6">请先从大纲管理选择需要编纂的内容</p>
-      <router-link
-        to="/outlines"
-        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all"
-      >
-        <span class="material-symbols-outlined">arrow_back</span>
-        返回大纲管理
-      </router-link>
+  <div class="smart-compile">
+    <div class="page-header">
+      <h2>智能编纂</h2>
+      <div class="header-actions">
+        <el-select v-model="selectedYearbookId" placeholder="选择年鉴" style="width: 200px" @change="onYearbookChange">
+          <el-option v-for="yb in yearbookList" :key="yb.id" :label="yb.name" :value="yb.id" />
+        </el-select>
+        <el-select v-model="selectedOutlineId" placeholder="选择大纲节点" style="width: 200px" @change="loadEntries">
+          <el-option v-for="o in flatOutlines" :key="o.id" :label="'  '.repeat(o.level - 1) + o.title" :value="o.id" />
+        </el-select>
+      </div>
     </div>
 
-    <!-- Three column layout -->
+    <div v-if="!selectedOutlineId" class="empty-state">
+      <el-empty description="请先选择年鉴和大纲节点" />
+    </div>
+
     <template v-else>
-      <!-- Top bar -->
-      <div class="flex-shrink-0 bg-white border-b border-slate-200 px-6 py-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <span class="text-slate-700 font-medium">正在编纂：{{ yearbookStore.currentYearbook?.name || '未命名年鉴' }}</span>
-            <div class="w-48 h-2 bg-slate-200 rounded-full overflow-hidden">
-              <div class="h-full bg-primary rounded-full transition-all" :style="{ width: progress + '%' }" />
+      <div class="compile-layout">
+        <!-- 左侧：资料列表 -->
+        <div class="panel panel-materials">
+          <div class="panel-header">
+            <h4>参考资料</h4>
+            <el-button size="small" text type="primary" @click="searchHistoryVisible = true">
+              <el-icon><Search /></el-icon> 检索历史数据
+            </el-button>
+          </div>
+          <div class="material-list">
+            <div v-for="(entry, idx) in entries" :key="entry.id" class="material-item" :class="{ active: activeEntryId === entry.id }" @click="selectEntry(entry)">
+              <div class="material-title">
+                <el-tag size="small" :type="(STATUS_TYPE[entry.status] as any)">{{ STATUS_LABEL[entry.status] }}</el-tag>
+                <span>{{ entry.title }}</span>
+              </div>
             </div>
-            <span class="text-sm text-slate-600">{{ progress }}%</span>
+            <el-empty v-if="entries.length === 0" :image-size="60" description="暂无条目" />
           </div>
-          <div class="flex items-center gap-2">
-            <router-link
-              :to="{ name: 'EntryManage' }"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all"
-            >
-              <span class="material-symbols-outlined text-xl">list_alt</span>
-              生成条目管理 ({{ entryCount }})
-            </router-link>
-            <button
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 hover:border-primary/50 hover:text-primary transition-all"
-              @click="handleRobotAssistant"
-            >
-              <span class="material-symbols-outlined text-xl">smart_toy</span>
-              机器人助理
-            </button>
-          </div>
+          <el-button type="primary" style="width: 100%; margin-top: 8px" @click="createNewEntry">
+            <el-icon><Plus /></el-icon> 新建条目
+          </el-button>
         </div>
-        <div class="mt-2 flex items-center gap-2 text-sm text-slate-600">
-          <span>{{ yearbookStore.currentYearbook?.name || '年鉴' }}</span>
-          <span class="material-symbols-outlined text-base">chevron_right</span>
-          <span>{{ outline?.section_name || '章节' }}</span>
-          <span class="material-symbols-outlined text-base">chevron_right</span>
-          <span>{{ outline?.subsection_name || '子章节' }}</span>
-          <span class="material-symbols-outlined text-base">chevron_right</span>
-          <span class="text-slate-900 font-medium">{{ outline?.title || '当前' }}</span>
+
+        <!-- 中间：原始数据 + AI生成 -->
+        <div class="panel panel-editor">
+          <template v-if="activeEntry">
+            <div class="panel-header">
+              <h4>{{ activeEntry.title }}</h4>
+              <div>
+                <el-button size="small" type="success" :loading="aiLoading" @click="handleAIGenerate">
+                  <el-icon><MagicStick /></el-icon> AI生成条目
+                </el-button>
+                <el-button size="small" @click="detectConflicts">
+                  <el-icon><Warning /></el-icon> 数据检测
+                </el-button>
+              </div>
+            </div>
+
+            <el-tabs v-model="activeTab">
+              <el-tab-pane label="原始数据" name="raw">
+                <div class="editor-area">
+                  <el-input
+                    v-model="activeEntry.original_content"
+                    type="textarea"
+                    :rows="12"
+                    placeholder="填入原始数据（统计数据、工作报告等）"
+                    @change="handleSaveRaw"
+                  />
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane label="AI生成内容" name="ai">
+                <div class="editor-area">
+                  <div class="ai-toolbar">
+                    <el-button-group>
+                      <el-button size="small" :loading="aiLoading" @click="handleAIRewrite">
+                        <el-icon><Edit /></el-icon> AI润色
+                      </el-button>
+                      <el-button size="small" :loading="aiLoading" @click="handleAIExpand">
+                        <el-icon><DocumentAdd /></el-icon> AI扩写
+                      </el-button>
+                    </el-button-group>
+                    <el-button size="small" type="primary" @click="saveVersion">
+                      <el-icon><Check /></el-icon> 保存版本
+                    </el-button>
+                  </div>
+                  <div class="rich-content" v-html="activeEntry.ai_content || '<p style=&quot;color:#909399&quot;>请先点击「AI生成条目」生成内容</p>'" />
+                </div>
+              </el-tab-pane>
+
+              <el-tab-pane label="版本记录" name="versions">
+                <el-table :data="versions" stripe>
+                  <el-table-column label="版本" width="80">
+                    <template #default="{ row }">v{{ row.version }}</template>
+                  </el-table-column>
+                  <el-table-column label="编辑人" prop="editor_name" width="100" />
+                  <el-table-column label="修订说明" prop="revision_note" />
+                  <el-table-column label="时间" width="180">
+                    <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="100">
+                    <template #default="{ row }">
+                      <el-button text type="primary" size="small" @click="restoreVersion(row)">还原</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
+          </template>
+          <el-empty v-else description="请选择一个条目" />
+        </div>
+
+        <!-- 右侧：辅助面板 -->
+        <div class="panel panel-assist">
+          <el-tabs v-model="assistTab">
+            <el-tab-pane label="历史数据" name="history">
+              <div v-for="h in historyData" :key="h.id" class="history-item">
+                <div class="history-year">{{ h.year }}年</div>
+                <div class="history-title">{{ h.entry_title }}</div>
+                <div class="history-content">{{ h.content?.substring(0, 120) }}...</div>
+                <el-button text size="small" type="primary" @click="useHistoryData(h)">引用</el-button>
+              </div>
+              <el-empty v-if="historyData.length === 0" :image-size="60" description="暂无历史数据" />
+            </el-tab-pane>
+
+            <el-tab-pane label="AI助手" name="bot">
+              <div class="bot-chat">
+                <div class="bot-messages">
+                  <div v-for="(msg, i) in botMessages" :key="i" class="bot-message" :class="msg.role">
+                    <div class="msg-content">{{ msg.content }}</div>
+                  </div>
+                </div>
+                <div class="bot-input">
+                  <el-input v-model="botQuestion" placeholder="输入问题..." @keyup.enter="askBot">
+                    <template #append>
+                      <el-button :loading="botLoading" @click="askBot">发送</el-button>
+                    </template>
+                  </el-input>
+                </div>
+              </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="检测结果" name="detect">
+              <div v-for="(c, i) in conflicts" :key="i" class="conflict-item">
+                <el-tag :type="c.severity === 'high' ? 'danger' : c.severity === 'medium' ? 'warning' : 'info'" size="small">
+                  {{ c.type }}
+                </el-tag>
+                <div class="conflict-desc">{{ c.description }}</div>
+                <div class="conflict-loc">位置: {{ c.location }}</div>
+              </div>
+              <el-empty v-if="conflicts.length === 0" :image-size="60" description="暂无检测结果" />
+            </el-tab-pane>
+          </el-tabs>
         </div>
       </div>
-
-      <!-- Main content -->
-      <div class="flex-1 flex min-h-0 overflow-hidden">
-        <!-- Left column: 资料列表 -->
-        <div class="w-1/5 min-w-[240px] flex-shrink-0 flex flex-col border-r border-slate-200 bg-white">
-          <div class="px-4 py-3 border-b border-slate-200 font-medium text-slate-800 flex items-center gap-2">
-            资料列表
-            <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">{{ totalMaterialCount }}</span>
-          </div>
-          <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <!-- 切分后资料 -->
-            <div class="border-b border-slate-100">
-              <button
-                @click="splitCollapsed = !splitCollapsed"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <span>切分后资料 ({{ splitMaterials.length }})</span>
-                <span class="material-symbols-outlined text-lg transition-transform" :class="{ 'rotate-180': !splitCollapsed }">expand_more</span>
-              </button>
-              <div v-show="!splitCollapsed" class="pb-2">
-                <div
-                  v-for="item in splitMaterials"
-                  :key="item.id"
-                  @click="selectedMaterial = item"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2 mx-2 rounded-r-lg cursor-pointer transition-all border-l-2',
-                    selectedMaterial?.id === item.id ? 'bg-primary/10 border-primary text-primary' : 'border-transparent hover:bg-slate-100 text-slate-700'
-                  ]"
-                >
-                  <span class="material-symbols-outlined text-xl shrink-0">description</span>
-                  <span class="truncate flex-1 text-sm">{{ item.name }}</span>
-                </div>
-              </div>
-            </div>
-            <!-- 上传资料 -->
-            <div>
-              <button
-                @click="uploadCollapsed = !uploadCollapsed"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <span>上传资料 ({{ uploadMaterials.length }})</span>
-                <span class="material-symbols-outlined text-lg transition-transform" :class="{ 'rotate-180': !uploadCollapsed }">expand_more</span>
-              </button>
-              <div v-show="!uploadCollapsed" class="pb-2">
-                <div
-                  v-for="item in uploadMaterials"
-                  :key="item.id"
-                  @click="selectedMaterial = item"
-                  :class="[
-                    'flex items-center gap-2 px-4 py-2 mx-2 rounded-r-lg cursor-pointer transition-all border-l-2',
-                    selectedMaterial?.id === item.id ? 'bg-primary/10 border-primary text-primary' : 'border-transparent hover:bg-slate-100 text-slate-700'
-                  ]"
-                >
-                  <span class="material-symbols-outlined text-xl shrink-0">description</span>
-                  <span class="truncate flex-1 text-sm">{{ item.name }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button
-            class="m-4 py-2.5 rounded-lg border-2 border-dashed border-slate-300 text-slate-600 text-sm font-medium hover:border-primary hover:text-primary transition-all flex items-center justify-center gap-2"
-            @click="showUploadDialog = true"
-          >
-            <span class="material-symbols-outlined text-xl">upload_file</span>
-            上传资料
-          </button>
-        </div>
-
-        <!-- Middle column: 资料预览 -->
-        <div class="w-2/5 flex-shrink-0 flex flex-col bg-slate-100 p-4 overflow-hidden">
-          <div class="mb-3 font-medium text-slate-800">资料预览</div>
-          <div class="flex-1 overflow-y-auto custom-scrollbar">
-            <div class="bg-white rounded-xl shadow-sm p-6 min-h-[200px] border border-slate-200">
-              <template v-if="selectedMaterial">
-                <h3 class="text-lg font-semibold text-slate-900 mb-4">{{ selectedMaterial.name }}</h3>
-                <div class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{{ selectedMaterial.preview }}</div>
-              </template>
-              <template v-else>
-                <div class="flex flex-col items-center justify-center h-48 text-slate-400">
-                  <span class="material-symbols-outlined text-5xl mb-2">description</span>
-                  <p class="text-sm">请从左侧选择资料</p>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right column: 条目生成 -->
-        <div class="w-2/5 flex-shrink-0 flex flex-col bg-white border-l border-slate-200 p-4 overflow-hidden">
-          <div class="mb-3 font-medium text-slate-800">条目生成</div>
-          <div class="flex-1 flex flex-col min-h-0">
-            <label class="text-sm text-slate-600 mb-1.5 block">条目原始数据</label>
-            <textarea
-              v-model="entryRawData"
-              class="h-40 w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none resize-y text-sm"
-              placeholder="请粘贴会议纪要、活动总结等原始资料内容，系统将自动识别并生成年鉴条目..."
-            />
-            <div class="mt-4">
-              <label class="text-sm text-slate-600 mb-2 block">选择往年历史数据</label>
-              <input
-                v-model="historySearch"
-                type="text"
-                placeholder="搜索历史条目..."
-                class="w-full px-4 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm mb-2"
-              />
-              <div class="max-h-40 overflow-y-auto custom-scrollbar border border-slate-200 rounded-lg p-2">
-                <label
-                  v-for="item in filteredHistory"
-                  :key="item.id"
-                  class="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-slate-50 cursor-pointer"
-                >
-                  <input type="checkbox" :value="item.id" v-model="selectedHistory" class="rounded text-primary" />
-                  <span class="text-sm text-slate-700">{{ item.title }}</span>
-                </label>
-              </div>
-            </div>
-            <div class="mt-4 flex-1 flex flex-col justify-end relative">
-              <button
-                @click="handleAiGenerate"
-                :disabled="!entryRawData.trim() || aiGenerating"
-                class="w-full py-3 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                <span v-if="aiGenerating" class="material-symbols-outlined animate-spin">progress_activity</span>
-                <span v-else class="material-symbols-outlined">bolt</span>
-                {{ aiGenerating ? '正在生成...' : '条目 AI 生成' }}
-              </button>
-              <p class="text-xs text-slate-500 mt-2">AI 将根据原始数据与历史条目风格自动生成年鉴条目，生成后可进入条目管理进行编辑与审核。</p>
-              <!-- Loading overlay -->
-              <div
-                v-if="aiGenerating"
-                class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-lg"
-              >
-                <span class="material-symbols-outlined text-5xl text-primary animate-spin mb-2">progress_activity</span>
-                <p class="text-sm text-slate-600">AI 正在生成条目...</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Upload dialog -->
-      <Teleport to="body">
-        <div
-          v-if="showUploadDialog"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-          @click.self="showUploadDialog = false"
-        >
-          <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-slate-900">上传资料</h3>
-              <button @click="showUploadDialog = false" class="p-2 rounded-lg hover:bg-slate-100">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div
-              :class="[
-                'border-2 border-dashed rounded-xl p-8 text-center transition-colors',
-                isDragging ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-primary/50'
-              ]"
-              @dragover.prevent="isDragging = true"
-              @dragleave="isDragging = false"
-              @drop.prevent="handleDrop"
-            >
-              <span class="material-symbols-outlined text-5xl text-slate-400 mb-3 block">upload_file</span>
-              <p class="text-slate-600 mb-1">拖拽文件到此处，或点击选择</p>
-              <p class="text-xs text-slate-500">支持 Word、PDF 格式，单个文件 ≤ 5MB</p>
-              <input
-                ref="fileInputRef"
-                type="file"
-                accept=".doc,.docx,.pdf"
-                class="hidden"
-                @change="handleFileSelect"
-              />
-              <button
-                @click="fileInputRef?.click()"
-                class="mt-4 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
-              >
-                选择文件
-              </button>
-            </div>
-            <div class="mt-4 flex justify-end gap-2">
-              <button @click="showUploadDialog = false" class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">取消</button>
-            </div>
-          </div>
-        </div>
-      </Teleport>
     </template>
+
+    <!-- 历史数据检索 -->
+    <el-dialog v-model="searchHistoryVisible" title="检索历史数据" width="500px" destroy-on-close>
+      <el-input v-model="historyKeyword" placeholder="输入关键词检索" @keyup.enter="searchHistory">
+        <template #append>
+          <el-button @click="searchHistory">检索</el-button>
+        </template>
+      </el-input>
+    </el-dialog>
+
+    <!-- 新建条目 -->
+    <el-dialog v-model="newEntryVisible" title="新建条目" width="420px" destroy-on-close>
+      <el-form label-width="80px">
+        <el-form-item label="条目标题">
+          <el-input v-model="newEntryTitle" placeholder="请输入条目标题" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="newEntryVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleCreateEntry">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, watch, inject } from 'vue'
-import { useRouter } from 'vue-router'
-import { supabase } from '@/lib/supabase'
-import { useYearbookStore } from '@/stores/yearbook'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { Search, Plus, MagicStick, Warning, Edit, DocumentAdd, Check } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { fetchYearbooks } from '@/api/yearbook'
+import { fetchOutlineTree } from '@/api/outline'
+import { fetchEntries, createEntry, updateEntry, fetchVersions, createVersion, fetchHistoryData } from '@/api/entry'
+import { aiGenerateEntry, aiRewrite, aiExpand, aiDetectConflicts, aiBotAnswer } from '@/api/ai'
+import { STATUS_LABEL, STATUS_TYPE } from '@/types'
+import type { Yearbook, OutlineNode, Entry, EntryVersion, HistoryData } from '@/types'
 
-const yearbookStore = useYearbookStore()
 const auth = useAuthStore()
-const router = useRouter()
-const toast = inject('toast')
+const yearbookList = ref<Yearbook[]>([])
+const selectedYearbookId = ref('')
+const selectedOutlineId = ref('')
+const flatOutlines = ref<OutlineNode[]>([])
 
-const outline = computed(() => yearbookStore.currentOutline)
-const progress = ref(35)
-const splitCollapsed = ref(false)
-const uploadCollapsed = ref(false)
-const selectedMaterial = ref(null)
-const entryRawData = ref('')
-const historySearch = ref('')
-const selectedHistory = ref([])
-const aiGenerating = ref(false)
-const showUploadDialog = ref(false)
-const isDragging = ref(false)
-const fileInputRef = ref(null)
+const entries = ref<Entry[]>([])
+const activeEntryId = ref('')
+const activeEntry = ref<Entry | null>(null)
+const activeTab = ref('raw')
+const assistTab = ref('history')
 
-// Mock: 切分后资料
-const splitMaterials = ref([
-  { id: 's1', name: '2024年度工作总结.docx', preview: '一、工作概况\n\n本单位2024年度围绕中心工作，扎实推进各项任务落实...\n\n二、主要成效\n\n1. 完成重点项目X项\n2. 开展专题活动Y次\n3. 获得上级表彰Z项\n\n三、下一步计划\n\n继续深化...' },
-  { id: 's2', name: '第一季度会议纪要.pdf', preview: '会议时间：2024年3月15日\n会议地点：三楼会议室\n参会人员：张三、李四、王五...\n\n会议内容：\n1. 讨论年度工作计划\n2. 审议预算方案\n3. 其他事项' },
+const versions = ref<EntryVersion[]>([])
+const historyData = ref<HistoryData[]>([])
+const conflicts = ref<any[]>([])
+
+const aiLoading = ref(false)
+const submitting = ref(false)
+
+const searchHistoryVisible = ref(false)
+const historyKeyword = ref('')
+
+const newEntryVisible = ref(false)
+const newEntryTitle = ref('')
+
+const botMessages = ref<{ role: string; content: string }[]>([
+  { role: 'assistant', content: '您好，我是AI助手。有什么关于年鉴编纂的问题可以问我。' },
 ])
+const botQuestion = ref('')
+const botLoading = ref(false)
 
-// Mock: 上传资料
-const uploadMaterials = ref([
-  { id: 'u1', name: '活动照片汇总.zip', preview: '（压缩包，包含活动相关图片文件）' },
-  { id: 'u2', name: '补充说明.txt', preview: '关于年度工作的补充说明材料...' },
-])
-
-// Mock: 往年历史数据
-const historyData = ref([
-  { id: 'h1', title: '2023年度工作总结' },
-  { id: 'h2', title: '2022年度工作总结' },
-  { id: 'h3', title: '2023年第一季度会议纪要' },
-  { id: 'h4', title: '2022年专题活动总结' },
-])
-
-const totalMaterialCount = computed(() => splitMaterials.value.length + uploadMaterials.value.length)
-const entryCount = ref(5)
-
-const filteredHistory = computed(() => {
-  const q = historySearch.value.trim().toLowerCase()
-  if (!q) return historyData.value
-  return historyData.value.filter(h => h.title.toLowerCase().includes(q))
-})
-
-watch(outline, (val) => {
-  if (val && splitMaterials.value.length && !selectedMaterial.value) {
-    selectedMaterial.value = splitMaterials.value[0]
+function flattenTree(nodes: OutlineNode[]): OutlineNode[] {
+  const result: OutlineNode[] = []
+  function walk(list: OutlineNode[]) {
+    for (const n of list) {
+      result.push(n)
+      if (n.children) walk(n.children)
+    }
   }
-}, { immediate: true })
-
-function handleRobotAssistant() {
-  toast('机器人助理功能已开启', 'info')
+  walk(nodes)
+  return result
 }
 
-function handleDrop(e) {
-  isDragging.value = false
-  const files = e.dataTransfer?.files
-  if (files?.length) handleFiles(Array.from(files))
+async function loadYearbooks() {
+  const result = await fetchYearbooks({ page: 1, pageSize: 100 })
+  yearbookList.value = result.data
 }
 
-function handleFileSelect(e) {
-  const files = e.target.files
-  if (files?.length) handleFiles(Array.from(files))
-  e.target.value = ''
+async function onYearbookChange() {
+  selectedOutlineId.value = ''
+  entries.value = []
+  activeEntry.value = null
+  const tree = await fetchOutlineTree(selectedYearbookId.value)
+  flatOutlines.value = flattenTree(tree)
 }
 
-function handleFiles(files) {
-  const valid = ['.doc', '.docx', '.pdf']
-  const maxSize = 5 * 1024 * 1024
-  for (const f of files) {
-    const ext = '.' + (f.name.split('.').pop() || '').toLowerCase()
-    if (!valid.includes(ext)) {
-      toast(`不支持的文件格式：${f.name}`, 'error')
-      continue
-    }
-    if (f.size > maxSize) {
-      toast(`文件过大：${f.name}（需 ≤ 5MB）`, 'error')
-      continue
-    }
-    uploadMaterials.value.push({
-      id: 'u' + Date.now() + Math.random().toString(36).slice(2),
-      name: f.name,
-      preview: `（已上传：${f.name}）`,
+async function loadEntries() {
+  if (!selectedOutlineId.value) return
+  const result = await fetchEntries({ outlineId: selectedOutlineId.value, page: 1, pageSize: 100 })
+  entries.value = result.data
+  activeEntry.value = null
+  activeEntryId.value = ''
+
+  try {
+    historyData.value = await fetchHistoryData(
+      flatOutlines.value.find((o) => o.id === selectedOutlineId.value)?.title || ''
+    )
+  } catch { historyData.value = [] }
+}
+
+function selectEntry(entry: Entry) {
+  activeEntryId.value = entry.id
+  activeEntry.value = { ...entry }
+  loadVersions()
+}
+
+async function loadVersions() {
+  if (!activeEntry.value) return
+  try {
+    versions.value = await fetchVersions(activeEntry.value.id)
+  } catch { versions.value = [] }
+}
+
+async function handleSaveRaw() {
+  if (!activeEntry.value) return
+  try {
+    await updateEntry(activeEntry.value.id, { original_content: activeEntry.value.original_content })
+  } catch {}
+}
+
+async function handleAIGenerate() {
+  if (!activeEntry.value) return
+  aiLoading.value = true
+  try {
+    const result = await aiGenerateEntry(
+      activeEntry.value.original_content || '',
+      historyData.value.map((h) => h.content).join('\n')
+    )
+    activeEntry.value.ai_content = result
+    await updateEntry(activeEntry.value.id, { ai_content: result, status: 'editing' })
+    activeTab.value = 'ai'
+    ElMessage.success('AI生成完成')
+
+    const idx = entries.value.findIndex((e) => e.id === activeEntry.value!.id)
+    if (idx >= 0) entries.value[idx].status = 'editing'
+  } catch (e: any) {
+    ElMessage.error(e.message || '生成失败')
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+async function handleAIRewrite() {
+  if (!activeEntry.value?.ai_content) return
+  aiLoading.value = true
+  try {
+    const result = await aiRewrite(activeEntry.value.ai_content)
+    activeEntry.value.ai_content = result
+    await updateEntry(activeEntry.value.id, { ai_content: result })
+    ElMessage.success('润色完成')
+  } catch { ElMessage.error('润色失败') }
+  finally { aiLoading.value = false }
+}
+
+async function handleAIExpand() {
+  if (!activeEntry.value?.ai_content) return
+  aiLoading.value = true
+  try {
+    const result = await aiExpand(activeEntry.value.ai_content)
+    activeEntry.value.ai_content = result
+    await updateEntry(activeEntry.value.id, { ai_content: result })
+    ElMessage.success('扩写完成')
+  } catch { ElMessage.error('扩写失败') }
+  finally { aiLoading.value = false }
+}
+
+async function saveVersion() {
+  if (!activeEntry.value?.ai_content) return
+  try {
+    const nextVersion = versions.value.length > 0 ? versions.value[0].version + 1 : 1
+    await createVersion({
+      entry_id: activeEntry.value.id,
+      version: nextVersion,
+      content: activeEntry.value.ai_content,
+      revision_note: `版本 v${nextVersion}`,
+      editor_id: auth.user?.id,
     })
-  }
-  if (files.length) {
-    toast('文件上传成功', 'success')
-    showUploadDialog.value = false
+    ElMessage.success('版本已保存')
+    loadVersions()
+  } catch (e: any) {
+    ElMessage.error(e.message || '保存失败')
   }
 }
 
-async function handleAiGenerate() {
-  if (!entryRawData.value.trim()) return
-  aiGenerating.value = true
-  await new Promise(r => setTimeout(r, 2000))
-  aiGenerating.value = false
-  toast('条目生成成功', 'success')
-  router.push({ name: 'EntryManage' })
+function restoreVersion(ver: EntryVersion) {
+  if (!activeEntry.value || !ver.content) return
+  activeEntry.value.ai_content = ver.content
+  updateEntry(activeEntry.value.id, { ai_content: ver.content })
+  ElMessage.success('已还原到 v' + ver.version)
 }
+
+async function detectConflicts() {
+  if (!activeEntry.value?.ai_content) {
+    ElMessage.warning('请先生成内容')
+    return
+  }
+  assistTab.value = 'detect'
+  conflicts.value = await aiDetectConflicts(activeEntry.value.ai_content)
+}
+
+async function searchHistory() {
+  if (!historyKeyword.value) return
+  try {
+    historyData.value = await fetchHistoryData(historyKeyword.value)
+    searchHistoryVisible.value = false
+    assistTab.value = 'history'
+  } catch {}
+}
+
+function useHistoryData(h: HistoryData) {
+  if (!activeEntry.value) return
+  activeEntry.value.original_content = (activeEntry.value.original_content || '') + '\n\n【历史数据 ' + h.year + '年】\n' + h.content
+  activeTab.value = 'raw'
+  ElMessage.success('已引用历史数据')
+}
+
+function createNewEntry() {
+  newEntryTitle.value = ''
+  newEntryVisible.value = true
+}
+
+async function handleCreateEntry() {
+  if (!newEntryTitle.value.trim()) {
+    ElMessage.warning('请输入标题')
+    return
+  }
+  submitting.value = true
+  try {
+    await createEntry({
+      outline_id: selectedOutlineId.value,
+      title: newEntryTitle.value,
+      sort_order: entries.value.length,
+      status: 'draft',
+      created_by: auth.user?.id,
+    })
+    ElMessage.success('创建成功')
+    newEntryVisible.value = false
+    loadEntries()
+  } catch (e: any) {
+    ElMessage.error(e.message || '创建失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function askBot() {
+  if (!botQuestion.value.trim()) return
+  const q = botQuestion.value
+  botMessages.value.push({ role: 'user', content: q })
+  botQuestion.value = ''
+  botLoading.value = true
+  try {
+    const answer = await aiBotAnswer(q)
+    botMessages.value.push({ role: 'assistant', content: answer })
+  } catch {
+    botMessages.value.push({ role: 'assistant', content: '抱歉，我暂时无法回答。' })
+  } finally {
+    botLoading.value = false
+  }
+}
+
+function formatDate(str: string): string {
+  if (!str) return ''
+  return new Date(str).toLocaleString('zh-CN')
+}
+
+onMounted(loadYearbooks)
 </script>
+
+<style scoped>
+.smart-compile { max-width: 1400px; margin: 0 auto; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.page-header h2 { font-size: 22px; font-weight: 600; margin: 0; }
+.header-actions { display: flex; gap: 12px; }
+.empty-state { padding: 60px 0; }
+
+.compile-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  gap: 16px;
+  min-height: calc(100vh - 180px);
+}
+
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e4e7ed;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.panel-header h4 { margin: 0; font-size: 15px; font-weight: 600; }
+
+.material-list { flex: 1; overflow-y: auto; }
+.material-item {
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: background 0.2s;
+}
+.material-item:hover { background: #f5f7fa; }
+.material-item.active { background: #ecf5ff; border: 1px solid #409eff; }
+.material-title { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+
+.editor-area { flex: 1; }
+.ai-toolbar { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.rich-content {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 16px;
+  min-height: 300px;
+  line-height: 1.8;
+  font-size: 14px;
+}
+.rich-content :deep(p) { margin: 0 0 8px; }
+
+.history-item {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.history-year { font-size: 12px; color: #409eff; font-weight: 600; }
+.history-title { font-size: 14px; font-weight: 500; margin: 4px 0; }
+.history-content { font-size: 12px; color: #909399; line-height: 1.5; }
+
+.conflict-item { padding: 10px; border-bottom: 1px solid #f0f0f0; }
+.conflict-desc { font-size: 13px; margin: 4px 0; }
+.conflict-loc { font-size: 12px; color: #909399; }
+
+.bot-chat { display: flex; flex-direction: column; height: 400px; }
+.bot-messages { flex: 1; overflow-y: auto; padding: 8px 0; }
+.bot-message { margin-bottom: 12px; }
+.bot-message.user .msg-content { background: #ecf5ff; color: #409eff; text-align: right; }
+.bot-message.assistant .msg-content { background: #f5f7fa; }
+.msg-content { padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.6; display: inline-block; max-width: 100%; white-space: pre-wrap; }
+.bot-input { margin-top: 8px; }
+</style>
