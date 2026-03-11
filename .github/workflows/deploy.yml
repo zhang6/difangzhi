@@ -7,7 +7,7 @@ permissions:
 
 on:
   push:
-    branches: [main, feature/yearbook-system-v2]
+    branches: [main, feature/yearbook-system-v2, feature/yearbook-system-v3]
 
 jobs:
   deploy:
