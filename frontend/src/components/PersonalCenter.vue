@@ -92,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useYearbookStore } from '@/stores/yearbook'
@@ -103,6 +103,7 @@ const emit = defineEmits(['close'])
 const auth = useAuthStore()
 const router = useRouter()
 const yearbookStore = useYearbookStore()
+const toast = inject('toast', null)
 
 const editName = ref('')
 const tasks = ref([])
@@ -196,6 +197,7 @@ async function saveChanges() {
   saving.value = true
   try {
     await auth.updateProfile(name)
+    toast?.('个人信息已保存', 'success')
     emit('close')
   } catch (e) {
     console.error('Save error:', e)

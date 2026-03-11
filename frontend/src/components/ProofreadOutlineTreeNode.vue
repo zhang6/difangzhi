@@ -3,7 +3,7 @@
     <div
       :class="[
         'group flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-colors',
-        selectedId === item.id ? 'bg-primary/10 text-primary' : 'hover:bg-slate-50',
+        selectedId === item.id ? 'border-l-2 border-primary bg-primary/5 text-primary' : 'border-l-2 border-transparent hover:bg-slate-50',
         !item.hasPermission && 'opacity-40'
       ]"
       :style="{ paddingLeft: `${(level || 0) * 12 + 8}px` }"

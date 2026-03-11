@@ -6,7 +6,14 @@
       class="flex-1 flex flex-col items-center justify-center text-slate-500"
     >
       <span class="material-symbols-outlined text-7xl mb-4 text-slate-300">edit_note</span>
-      <p class="text-lg">请先从年鉴管理选择需要统稿的年鉴</p>
+      <p class="text-lg mb-6">请先从年鉴管理选择需要统稿的年鉴</p>
+      <router-link
+        to="/yearbooks"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-all"
+      >
+        <span class="material-symbols-outlined">arrow_back</span>
+        返回年鉴管理
+      </router-link>
     </div>
 
     <template v-else>
@@ -15,10 +22,7 @@
         <div class="flex items-center gap-4">
           <span class="text-slate-700 font-medium">正在编纂：{{ yearbookStore.currentYearbook?.name || '未命名年鉴' }}</span>
           <div class="flex-1 max-w-md h-2 bg-slate-200 rounded-full overflow-hidden">
-            <div
-              class="h-full rounded-full transition-all"
-              :style="{ width: progress + '%', backgroundColor: '#1a90ff' }"
-            />
+            <div class="h-full bg-primary rounded-full transition-all" :style="{ width: progress + '%' }" />
           </div>
           <span class="text-sm text-slate-600 font-medium">{{ progress }}%</span>
         </div>
@@ -26,11 +30,15 @@
 
       <!-- Main layout: sidebar + content -->
       <div class="flex-1 flex min-h-0 overflow-hidden">
-        <!-- Left sidebar (25%, min-300px) -->
-        <aside class="w-[25%] min-w-[300px] flex-shrink-0 flex flex-col border-r border-slate-200 bg-white">
+        <!-- Left sidebar -->
+        <aside class="w-[300px] flex-shrink-0 flex flex-col border-r border-slate-200 bg-white">
           <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
             <span class="font-medium text-slate-800">大纲目录</span>
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors">
+            <button
+              class="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+              @click="handleFilter"
+              title="筛选"
+            >
               <span class="material-symbols-outlined">filter_list</span>
             </button>
           </div>
@@ -41,7 +49,7 @@
               class="absolute inset-0 z-10 bg-white/95 backdrop-blur-sm flex flex-col p-4 rounded-lg"
             >
               <p class="text-sm text-slate-600 mb-3">选择要导出的章节：</p>
-              <div class="flex-1 overflow-y-auto space-y-2">
+              <div class="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
                 <label
                   v-for="item in flatOutlineItems"
                   :key="item.id"
@@ -58,19 +66,15 @@
               </div>
               <button
                 @click="confirmExport"
-                class="mt-4 w-full py-2.5 rounded-lg text-white font-medium transition-colors"
-                style="background-color: #1a90ff"
+                class="mt-4 w-full py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
               >
+                <span class="material-symbols-outlined">download</span>
                 确认导出
               </button>
             </div>
             <!-- Tree structure -->
             <div v-else class="space-y-0.5">
-              <div
-                v-for="item in outlineTree"
-                :key="item.id"
-                class="outline-tree-item"
-              >
+              <div v-for="item in outlineTree" :key="item.id">
                 <ProofreadOutlineTreeNode
                   :item="item"
                   :selected-id="selectedOutlineId"
@@ -85,8 +89,7 @@
           <div class="p-4 border-t border-slate-200">
             <button
               @click="toggleExportMode"
-              class="w-full py-2.5 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
-              style="background-color: #1a90ff"
+              class="w-full py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
             >
               <span class="material-symbols-outlined">download</span>
               导出全文
@@ -94,7 +97,7 @@
           </div>
         </aside>
 
-        <!-- Right content (75%) -->
+        <!-- Right content -->
         <div class="flex-1 flex min-h-0 overflow-hidden">
           <!-- Editor area -->
           <div class="flex-1 flex flex-col min-w-0 bg-white">
@@ -103,49 +106,59 @@
               <h3 class="font-medium text-slate-800">{{ selectedOutline?.title || '请选择章节' }}</h3>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-slate-500">最后保存：{{ lastSaveTime }}</span>
-                <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-slate-100 transition-colors">
-                  批注
+                <button
+                  :class="[
+                    'px-3 py-1.5 rounded-lg border text-sm transition-colors',
+                    commentsPanelVisible ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 hover:bg-slate-100'
+                  ]"
+                  @click="commentsPanelVisible = !commentsPanelVisible"
+                >
+                  批注 ({{ comments.length }})
                 </button>
-                <button class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-slate-100 transition-colors">
+                <button
+                  class="px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-slate-100 transition-colors"
+                  @click="showVersionHistory = true"
+                >
                   版本历史
                 </button>
               </div>
             </div>
             <!-- Rich text toolbar -->
             <div class="flex items-center gap-1 px-4 py-2 border-b border-slate-200 bg-white">
-              <button class="p-2 rounded hover:bg-slate-100" title="粗体">
+              <button class="p-2 rounded hover:bg-slate-100" title="粗体" @click="execFormat('bold')">
                 <span class="material-symbols-outlined text-lg">format_bold</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="斜体">
+              <button class="p-2 rounded hover:bg-slate-100" title="斜体" @click="execFormat('italic')">
                 <span class="material-symbols-outlined text-lg">format_italic</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="下划线">
+              <button class="p-2 rounded hover:bg-slate-100" title="下划线" @click="execFormat('underline')">
                 <span class="material-symbols-outlined text-lg">format_underlined</span>
               </button>
               <div class="w-px h-6 bg-slate-200 mx-1" />
-              <button class="p-2 rounded hover:bg-slate-100" title="左对齐">
+              <button class="p-2 rounded hover:bg-slate-100" title="左对齐" @click="execFormat('justifyLeft')">
                 <span class="material-symbols-outlined text-lg">format_align_left</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="居中">
+              <button class="p-2 rounded hover:bg-slate-100" title="居中" @click="execFormat('justifyCenter')">
                 <span class="material-symbols-outlined text-lg">format_align_center</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="右对齐">
+              <button class="p-2 rounded hover:bg-slate-100" title="右对齐" @click="execFormat('justifyRight')">
                 <span class="material-symbols-outlined text-lg">format_align_right</span>
               </button>
               <div class="w-px h-6 bg-slate-200 mx-1" />
-              <button class="p-2 rounded hover:bg-slate-100" title="插入图片">
+              <button class="p-2 rounded hover:bg-slate-100" title="插入图片" @click="handleInsertImage">
                 <span class="material-symbols-outlined text-lg">image</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="插入表格">
+              <button class="p-2 rounded hover:bg-slate-100" title="插入表格" @click="handleInsertTable">
                 <span class="material-symbols-outlined text-lg">table_chart</span>
               </button>
-              <button class="p-2 rounded hover:bg-slate-100" title="插入链接">
+              <button class="p-2 rounded hover:bg-slate-100" title="插入链接" @click="handleInsertLink">
                 <span class="material-symbols-outlined text-lg">link</span>
               </button>
             </div>
             <!-- Editor area -->
             <div class="flex-1 overflow-y-auto p-6">
               <div
+                ref="editorRef"
                 class="prose prose-slate max-w-none min-h-[300px] rounded-lg border border-slate-200 p-6 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary outline-none"
                 contenteditable="true"
                 @input="onEditorInput"
@@ -162,8 +175,7 @@
                 保存草稿
               </button>
               <button
-                class="px-4 py-2 rounded-lg text-white font-medium transition-colors"
-                style="background-color: #1a90ff"
+                class="px-4 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors"
                 @click="submitReview"
               >
                 提交审阅
@@ -171,10 +183,13 @@
             </div>
           </div>
 
-          <!-- Right comments panel (w-80) -->
-          <div class="w-80 flex-shrink-0 flex flex-col border-l border-slate-200 bg-slate-50">
+          <!-- Right comments panel (toggleable) -->
+          <div
+            v-show="commentsPanelVisible"
+            class="w-72 flex-shrink-0 flex flex-col border-l border-slate-200 bg-slate-50"
+          >
             <div class="px-4 py-3 border-b border-slate-200 font-medium text-slate-800">
-              当前批注 ({{ comments.length }})
+              批注 ({{ comments.length }})
             </div>
             <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
               <div
@@ -191,14 +206,69 @@
                 </div>
                 <p class="text-sm text-slate-600">{{ c.text }}</p>
                 <div v-if="!c.isMine" class="flex gap-2 mt-2">
-                  <button class="text-xs px-2 py-1 rounded bg-primary/20 text-primary hover:bg-primary/30">采纳</button>
-                  <button class="text-xs px-2 py-1 rounded bg-slate-200 text-slate-600 hover:bg-slate-300">忽略</button>
+                  <button
+                    class="text-xs px-2 py-1 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors"
+                    @click="handleAdoptComment(c)"
+                  >
+                    采纳
+                  </button>
+                  <button
+                    class="text-xs px-2 py-1 rounded bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors"
+                    @click="handleIgnoreComment(c)"
+                  >
+                    忽略
+                  </button>
                 </div>
+              </div>
+            </div>
+            <div class="p-3 border-t border-slate-200">
+              <div class="flex gap-2">
+                <input
+                  v-model="newCommentText"
+                  type="text"
+                  placeholder="添加批注..."
+                  class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none text-sm"
+                  @keydown.enter.prevent="addComment"
+                />
+                <button
+                  @click="addComment"
+                  class="px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90"
+                >
+                  发送
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Version history dialog -->
+      <Teleport to="body">
+        <div
+          v-if="showVersionHistory"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          @click.self="showVersionHistory = false"
+        >
+          <div class="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-200">
+              <h3 class="text-lg font-semibold text-slate-900">版本历史</h3>
+              <button @click="showVersionHistory = false" class="p-2 rounded-lg hover:bg-slate-100">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-2">
+              <div
+                v-for="v in versionHistory"
+                :key="v.id"
+                class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-slate-50"
+              >
+                <span class="text-sm text-slate-700">{{ v.label }}</span>
+                <span class="text-xs text-slate-500">{{ v.time }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Teleport>
 
       <!-- Split dialog -->
       <Teleport to="body">
@@ -235,7 +305,7 @@
                   <button
                     v-if="splitParts.length < 5"
                     @click="splitParts.push('')"
-                    class="w-full py-2 rounded-lg border-2 border-dashed border-slate-200 text-slate-500 hover:border-primary hover:text-primary text-sm flex items-center justify-center gap-1"
+                    class="w-full py-2 rounded-lg border-2 border-dashed border-slate-200 text-slate-500 hover:border-primary hover:text-primary text-sm flex items-center justify-center gap-1 transition-colors"
                   >
                     <span class="material-symbols-outlined text-lg">add</span>
                     添加
@@ -245,7 +315,7 @@
             </div>
             <div class="flex justify-end gap-3 p-4 border-t border-slate-200">
               <button @click="showSplitDialog = false" class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">取消</button>
-              <button @click="confirmSplit" class="px-4 py-2 rounded-lg text-white" style="background-color: #1a90ff">确认拆分</button>
+              <button @click="confirmSplit" class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90">确认拆分</button>
             </div>
           </div>
         </div>
@@ -261,7 +331,7 @@
           <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <h3 class="text-lg font-semibold text-slate-900 mb-4">合并章节</h3>
             <p class="text-sm text-slate-600 mb-3">选择要合并的另一个子项：</p>
-            <div class="space-y-2 max-h-48 overflow-y-auto mb-4">
+            <div class="space-y-2 max-h-48 overflow-y-auto mb-4 custom-scrollbar">
               <button
                 v-for="sib in mergeSiblings"
                 :key="sib.id"
@@ -276,7 +346,11 @@
             </div>
             <div class="flex justify-end gap-3">
               <button @click="showMergeDialog = false" class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50">取消</button>
-              <button @click="confirmMerge" :disabled="!mergeTargetId" class="px-4 py-2 rounded-lg text-white disabled:opacity-50" style="background-color: #1a90ff">
+              <button
+                @click="confirmMerge"
+                :disabled="!mergeTargetId"
+                class="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 确认合并
               </button>
             </div>
@@ -288,13 +362,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import { supabase } from '@/lib/supabase'
 import { useYearbookStore } from '@/stores/yearbook'
 import { useAuthStore } from '@/stores/auth'
 import ProofreadOutlineTreeNode from '@/components/ProofreadOutlineTreeNode.vue'
 
 const yearbookStore = useYearbookStore()
 const auth = useAuthStore()
+const router = useRouter()
+const toast = inject('toast')
 
 const progress = ref(42)
 const selectedOutlineId = ref(null)
@@ -304,10 +382,14 @@ const exportMode = ref(false)
 const exportSelectedIds = ref([])
 const showSplitDialog = ref(false)
 const showMergeDialog = ref(false)
+const showVersionHistory = ref(false)
 const splitOriginalText = ref('')
 const splitParts = ref(['', ''])
 const mergeTargetId = ref(null)
 const mergeSourceItem = ref(null)
+const commentsPanelVisible = ref(true)
+const newCommentText = ref('')
+const editorRef = ref(null)
 
 // Mock outline tree
 const outlineTree = ref([
@@ -336,6 +418,12 @@ const outlineTree = ref([
   },
 ])
 
+// Mock version history
+const versionHistory = ref([
+  { id: 1, label: 'v2 - 当前版本', time: '10:30' },
+  { id: 2, label: 'v1', time: '09:15' },
+])
+
 const flatOutlineItems = computed(() => {
   const flat = []
   function walk(items) {
@@ -362,9 +450,15 @@ const selectedOutline = computed(() => {
 
 const mergeSiblings = computed(() => {
   if (!mergeSourceItem.value) return []
-  const parent = outlineTree.value.find(p => p.children?.some(c => c.id === mergeSourceItem.value.id))
-    || outlineTree.value.flatMap(p => p.children || []).find(p => p.children?.some(c => c.id === mergeSourceItem.value.id))
-  const siblings = parent?.children || outlineTree.value
+  function findSiblings(items, targetId, parent = null) {
+    for (const item of items) {
+      if (item.id === targetId) return parent?.children || items
+      const found = findSiblings(item.children || [], targetId, item)
+      if (found) return found
+    }
+    return []
+  }
+  const siblings = findSiblings(outlineTree.value, mergeSourceItem.value.id)
   return siblings.filter(s => s.id !== mergeSourceItem.value?.id)
 })
 
@@ -381,7 +475,11 @@ function selectOutline(item) {
 
 function handleSmartCompile(item) {
   yearbookStore.setCurrentOutline(item)
-  // Navigate to smart compile - could use router
+  router.push('/compile')
+}
+
+function handleFilter() {
+  toast('筛选功能', 'info')
 }
 
 function toggleExportMode() {
@@ -391,7 +489,7 @@ function toggleExportMode() {
 
 function confirmExport() {
   exportMode.value = false
-  // Mock export
+  toast('导出成功', 'success')
 }
 
 function openSplitDialog(item) {
@@ -403,6 +501,7 @@ function openSplitDialog(item) {
 
 function confirmSplit() {
   showSplitDialog.value = false
+  toast('拆分成功', 'success')
 }
 
 function openMergeDialog(item) {
@@ -414,6 +513,7 @@ function openMergeDialog(item) {
 function confirmMerge() {
   showMergeDialog.value = false
   mergeTargetId.value = null
+  toast('合并成功', 'success')
 }
 
 function onEditorInput() {
@@ -422,9 +522,55 @@ function onEditorInput() {
 
 function saveDraft() {
   lastSaveTime.value = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  toast('草稿已保存', 'success')
 }
 
 function submitReview() {
-  // Mock submit
+  toast('已提交审阅', 'success')
+}
+
+function execFormat(cmd) {
+  document.execCommand(cmd, false, null)
+  editorRef.value?.focus()
+}
+
+function handleInsertImage() {
+  toast('插入图片功能', 'info')
+}
+
+function handleInsertTable() {
+  toast('插入表格功能', 'info')
+}
+
+function handleInsertLink() {
+  const url = prompt('请输入链接地址：')
+  if (url) {
+    document.execCommand('createLink', false, url)
+    toast('链接已插入', 'success')
+  }
+}
+
+function handleAdoptComment(c) {
+  comments.value = comments.value.filter(x => x.id !== c.id)
+  toast('已采纳批注', 'success')
+}
+
+function handleIgnoreComment(c) {
+  comments.value = comments.value.filter(x => x.id !== c.id)
+  toast('已忽略批注', 'info')
+}
+
+function addComment() {
+  const text = newCommentText.value.trim()
+  if (!text) return
+  comments.value.push({
+    id: Date.now(),
+    author: auth.userName || '我',
+    text,
+    time: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    isMine: true,
+  })
+  newCommentText.value = ''
+  toast('批注已添加', 'success')
 }
 </script>

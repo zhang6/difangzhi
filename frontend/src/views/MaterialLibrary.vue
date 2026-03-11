@@ -1,12 +1,14 @@
 <template>
   <div class="p-6 max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-slate-900">资料库</h1>
-      <p class="text-slate-500 mt-1">管理各供稿单位提交的资料</p>
+    <!-- Header area -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-900">资料库</h1>
+        <p class="text-slate-500 mt-0.5">管理各供稿单位提交的资料</p>
+      </div>
       <button
         @click="showCreateDialog = true"
-        class="mt-4 px-5 py-2.5 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all flex items-center gap-2"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition-all shadow-md shrink-0"
       >
         <span class="material-symbols-outlined text-xl">create_new_folder</span>
         创建文件夹
@@ -15,13 +17,20 @@
 
     <!-- Search bar -->
     <div class="relative mb-6">
-      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+      <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl pointer-events-none">search</span>
       <input
         v-model="searchQuery"
         type="text"
         placeholder="请输入供稿单位名称或标签"
-        class="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+        class="w-full pl-12 pr-12 py-3 rounded-xl shadow-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/20 focus:ring-primary outline-none transition-all"
       />
+      <button
+        v-if="searchQuery"
+        @click="searchQuery = ''"
+        class="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+      >
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
     </div>
 
     <!-- Folder grid -->
@@ -30,18 +39,18 @@
         v-for="folder in paginatedFolders"
         :key="folder.id"
         @click="$router.push(`/materials/${folder.id}`)"
-        class="bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-xl hover:border-primary/30 transition-all"
+        class="bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-lg hover:border-primary/20 transition-all group"
       >
-        <div class="size-14 flex items-center justify-center bg-primary/10 rounded-xl text-primary mb-4">
-          <span class="material-symbols-outlined text-3xl">folder</span>
+        <div class="size-12 flex items-center justify-center bg-primary/10 rounded-xl text-primary mb-4 group-hover:scale-105 transition-transform">
+          <span class="material-symbols-outlined text-2xl">folder</span>
         </div>
-        <h3 class="font-bold text-lg text-slate-900 truncate">{{ folder.unit_name }}</h3>
+        <h3 class="font-bold text-base text-slate-900 truncate">{{ folder.unit_name }}</h3>
         <p class="text-xs text-slate-500 mt-1">共 {{ folder.file_count ?? 0 }} 个文件</p>
         <div v-if="folderTags(folder).length" class="flex flex-wrap gap-1.5 mt-3">
           <span
             v-for="tag in folderTags(folder)"
             :key="tag"
-            class="px-2 py-0.5 rounded-md bg-primary/5 text-primary text-xs"
+            class="px-2 py-0.5 rounded bg-primary/5 text-primary text-xs"
           >
             {{ tag }}
           </span>
@@ -67,7 +76,7 @@
         :class="[
           'w-10 h-10 rounded-lg font-medium transition-all',
           currentPage === p
-            ? 'bg-primary text-white'
+            ? 'bg-primary text-white shadow'
             : 'bg-white border border-slate-200 text-slate-600 hover:border-primary/30 hover:text-primary'
         ]"
       >
@@ -79,7 +88,7 @@
     <Teleport to="body">
       <div
         v-if="showCreateDialog"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
         @click.self="showCreateDialog = false"
       >
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
@@ -130,8 +139,10 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { supabase } from '@/lib/supabase'
+
+const toast = inject('toast')
 
 const folders = ref([])
 const searchQuery = ref('')
@@ -177,6 +188,7 @@ async function loadFolders() {
     .order('created_at', { ascending: false })
   if (error) {
     console.error('加载文件夹失败:', error)
+    toast?.('加载文件夹失败', 'error')
     return
   }
   folders.value = data || []
@@ -209,8 +221,10 @@ async function createFolder() {
     folders.value = [data, ...folders.value]
     showCreateDialog.value = false
     createForm.value = { unit_name: '', tags: '' }
+    toast?.('创建成功', 'success')
   } catch (e) {
     createError.value = e.message?.includes('unique') ? '该供稿单位已存在' : (e.message || '创建失败')
+    toast?.(createError.value, 'error')
   } finally {
     creating.value = false
   }

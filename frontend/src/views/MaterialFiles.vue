@@ -224,13 +224,14 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const auth = useAuthStore()
+const toast = inject('toast', null)
 const folderId = computed(() => route.params.folderId)
 
 const folder = ref(null)
@@ -437,6 +438,7 @@ async function doUpload() {
     closeUpload()
     loadFiles()
     await updateFolderCount()
+    toast?.('文件上传成功', 'success')
   } catch (e) {
     uploadError.value = e.message || '上传失败'
   } finally {
@@ -483,6 +485,7 @@ async function doDelete() {
     files.value = files.value.filter(f => f.id !== deleteTarget.value.id)
     deleteTarget.value = null
     await updateFolderCount()
+    toast?.('文件已删除', 'success')
   } catch (e) {
     console.error('删除失败:', e)
   } finally {
