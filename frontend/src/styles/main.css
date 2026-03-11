@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1a90ff;
+  --color-primary-light: #e8f4ff;
+  --color-bg-light: #f5f7f8;
+  --color-bg-dark: #0f1923;
+  --font-family-display: 'Public Sans', 'Noto Sans SC', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-family-display);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.yearbook-card:hover {
+  transform: translateY(-4px);
+  transition: all 0.3s ease;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.slide-enter-from {
+  transform: translateY(10px);
+  opacity: 0;
+}
+.slide-leave-to {
+  transform: translateY(-10px);
+  opacity: 0;
+}

@@ -1,6 +1,6 @@
 {
-  "name": "chronicle-frontend",
-  "version": "1.0.0",
+  "name": "yearbook-frontend",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -9,20 +9,18 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
-    "@element-plus/icons-vue": "^2.3.1",
+    "@tailwindcss/vite": "^4.2.1",
     "@tiptap/extension-placeholder": "^2.1.13",
     "@tiptap/starter-kit": "^2.1.13",
     "@tiptap/vue-3": "^2.1.13",
-    "axios": "^1.6.5",
     "bcryptjs": "^3.0.3",
-    "element-plus": "^2.5.0",
     "pinia": "^2.1.7",
+    "tailwindcss": "^4.2.1",
     "vue": "^3.4.0",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.0",
-    "sass": "^1.69.0",
-    "vite": "^5.0.0"
+    "@vitejs/plugin-vue": "^6.0.4",
+    "vite": "^7.3.1"
   }
 }

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a90ff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Public Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 lg:px-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="flex h-8 w-8 items-center justify-center rounded bg-primary text-white">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<h2 class="text-lg font-bold tracking-tight">智能年鉴汇编系统</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">首页</a>
+<a class="text-sm font-medium text-primary" href="#">单位管理</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">资源库</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">系统设置</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<div class="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded px-3 py-1.5 w-64">
+<span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-500" placeholder="全局搜索..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-500">notifications</span>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" data-alt="User avatar placeholder" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBvyGkq0-vhVjD7V5zClgg5lpvvJxZegQggG-vnRc67j0xEqmIkHjGr25BX7mL2niO8jm3ieGVcmD6R_pz28h6xpQXg1z5ErhmzOIzd9DFkDym64grQ64cjHq_1YrnxtC8M-lLwvnyatgQis7DLrtSFfPG9AtgK8uMKejzBnwn3NuAHeDyHjp1xOwwja2Dnn90M1TDHEXobG32B9-wA65GEILUHr7Zr9A5o5m9Q8Rrwq7_8Uu6CpZlEwJ-sarnPdkLBzNFstQPa5BnI')"></div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col p-4 gap-6">
+<div>
+<h1 class="text-base font-semibold mb-1">年鉴管理系统</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400">数据库管理 v2.4</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined">folder</span>
+<span class="text-sm font-medium">单位列表</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">account_tree</span>
+<span class="text-sm font-medium">目录结构</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">verified_user</span>
+<span class="text-sm font-medium">数据审核</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">analytics</span>
+<span class="text-sm font-medium">统计分析</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col bg-background-light dark:bg-background-dark overflow-y-auto">
+<!-- Breadcrumbs -->
+<div class="px-6 pt-6 pb-2">
+<div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary" href="#">首页</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">供稿单位</span>
+</div>
+</div>
+<!-- Search Header -->
+<div class="px-6 py-4">
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="flex flex-1 items-center bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-4 py-2">
+<span class="material-symbols-outlined text-slate-400">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-base w-full px-2" type="text" value="不存在的单位名称"/>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined">cancel</span>
+</button>
+</div>
+<button class="bg-primary text-white px-6 py-2 rounded font-semibold hover:bg-primary/90 transition-colors">
+                                查询
+                            </button>
+</div>
+</div>
+</div>
+<!-- Empty State Content -->
+<div class="flex-1 flex flex-col items-center justify-center p-8">
+<div class="max-w-md w-full flex flex-col items-center text-center gap-6">
+<!-- Empty State Illustration -->
+<div class="relative w-64 h-64 flex items-center justify-center">
+<div class="absolute inset-0 bg-slate-100 dark:bg-slate-800 rounded-full scale-95 opacity-50"></div>
+<div class="relative flex flex-col items-center text-slate-300 dark:text-slate-700">
+<span class="material-symbols-outlined text-8xl">folder_off</span>
+<div class="mt-[-10px] flex gap-2">
+<div class="w-8 h-1 bg-current rounded-full"></div>
+<div class="w-16 h-1 bg-current rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<h3 class="text-xl font-bold text-slate-800 dark:text-slate-200">无相关供稿单位</h3>
+<p class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                                未找到符合搜索条件的单位，请尝试调整搜索关键词或重置筛选条件。
+                            </p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-6 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-sm">restart_alt</span>
+                                重置搜索
+                            </button>
+<button class="flex items-center gap-2 px-6 py-2.5 bg-primary/10 text-primary rounded font-bold hover:bg-primary/20 transition-all border border-primary/20">
+<span class="material-symbols-outlined text-sm">add</span>
+                                新增单位
+                            </button>
+</div>
+</div>
+</div>
+<!-- Footer Stats (Subtle) -->
+<div class="px-10 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs text-slate-400">
+<p>© 2024 智能年鉴汇编系统 - 数据中心</p>
+<div class="flex gap-4">
+<span>系统状态: 正常</span>
+<span>当前库容: 1.2TB</span>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

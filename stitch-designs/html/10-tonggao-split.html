@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a90ff",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<title>统稿模块 - 目录拆分</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Background Overlay / Mockup Background -->
+<div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-0 flex items-center justify-center p-4">
+<!-- Modal Container -->
+<div class="bg-white dark:bg-slate-900 w-full max-w-6xl h-[85vh] rounded-xl shadow-2xl flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="bg-primary/10 p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary">account_tree</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">目录拆分</h2>
+</div>
+<button class="hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-500">close</span>
+</button>
+</header>
+<!-- Main Content Area (Two Columns) -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Column: Read-only Original Content -->
+<div class="w-1/2 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
+<div class="p-6 overflow-y-auto">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-slate-400 text-sm">info</span>
+<span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">原条目内容 (只读)</span>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">原条目标题</label>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-semibold">
+                                    关于2023年度市场数字化转型战略的综合指导意见
+                                </div>
+</div>
+<div>
+<label class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">原正文内容</label>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 leading-relaxed h-[400px] overflow-y-auto">
+<p class="mb-4">随着全球数字经济的迅猛发展，各行业正经历前所未有的深刻变革。本指导意见旨在明确我司未来三年的数字化转型路径，重点聚焦于基础设施云化、数据治理规范化以及业务流程自动化三个核心维度。</p>
+<p class="mb-4">第一部分：基础设施升级。我们将全面推进混合云架构部署，确保业务系统的高可用性与弹性伸缩能力。同时，加强边缘计算节点的布局，以支持实时数据处理需求。</p>
+<p class="mb-4">第二部分：数据资产运营。建立全生命周期的数据治理体系，通过统一的数据湖平台实现跨部门数据互联互通，挖掘数据潜在价值，支撑管理层决策。所有部门需在三季度前完成核心存量数据的清洗与入库工作。</p>
+<p>第三部分：组织架构适配。数字化转型不仅是技术革新，更是文化重塑。我们将设立数字化转型办公室，负责统筹各业务线的技术应用落地，并定期开展员工数字化素养提升培训。</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Split Configuration -->
+<div class="w-1/2 flex flex-col bg-white dark:bg-slate-900">
+<div class="p-6 overflow-y-auto flex-1">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary text-sm">edit_note</span>
+<span class="text-sm font-semibold text-slate-500 uppercase tracking-wider">拆分配置区</span>
+</div>
+<!-- Split Item 1 -->
+<div class="mb-8 p-5 border border-primary/20 bg-primary/5 rounded-xl relative">
+<div class="absolute -left-3 top-5 bg-primary text-white text-xs font-bold px-2 py-1 rounded">项 1</div>
+<div class="space-y-4">
+<div>
+<input class="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary px-4 py-2.5" placeholder="请输入拆分后的标题" type="text" value="一、基础设施与云化部署战略"/>
+</div>
+<div>
+<textarea class="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary px-4 py-2.5" placeholder="请输入拆分后的正文内容" rows="4">我们将全面推进混合云架构部署，确保业务系统的高可用性与弹性伸缩能力。同时，加强边缘计算节点的布局，以支持实时数据处理需求。</textarea>
+</div>
+</div>
+</div>
+<!-- Split Item 2 -->
+<div class="mb-8 p-5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 rounded-xl relative">
+<div class="absolute -left-3 top-5 bg-slate-400 text-white text-xs font-bold px-2 py-1 rounded">项 2</div>
+<div class="space-y-4">
+<div>
+<input class="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary px-4 py-2.5" placeholder="请输入拆分后的标题" type="text" value="二、数据治理与资产价值挖掘"/>
+</div>
+<div>
+<textarea class="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg focus:ring-primary focus:border-primary px-4 py-2.5" placeholder="请输入拆分后的正文内容" rows="4">建立全生命周期的数据治理体系，通过统一的数据湖平台实现跨部门数据互联互通，挖掘数据潜在价值，支撑管理层决策。</textarea>
+</div>
+</div>
+</div>
+<!-- Add Button -->
+<button class="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2 text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-medium">添加拆分项</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<footer class="border-t border-slate-200 dark:border-slate-800 px-8 py-5 flex justify-end items-center gap-4 bg-slate-50 dark:bg-slate-900">
+<button class="px-6 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    取消
+                </button>
+<button class="px-8 py-2.5 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2">
+                    确认拆分
+                </button>
+</footer>
+</div>
+</div>
+</body></html>

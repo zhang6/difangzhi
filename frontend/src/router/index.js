@@ -1,31 +1,38 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '@/stores/auth'
 
 const routes = [
-  { path: '/login', name: 'Login', component: () => import('../views/Login.vue'), meta: { public: true } },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/Login.vue'),
+    meta: { public: true }
+  },
   {
     path: '/',
-    component: () => import('../layouts/MainLayout.vue'),
+    component: () => import('@/layouts/AppLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: '', redirect: '/dashboard' },
-      { path: 'dashboard', name: 'Dashboard', component: () => import('../views/Dashboard.vue') },
-      { path: 'materials', name: 'Materials', component: () => import('../views/Materials.vue') },
-      { path: 'catalog', name: 'Catalog', component: () => import('../views/Catalog.vue') },
-      { path: 'entries', name: 'Entries', component: () => import('../views/Entries.vue') },
-      { path: 'entries/:id', name: 'EntryEdit', component: () => import('../views/EntryEdit.vue') },
-      { path: 'events', name: 'Events', component: () => import('../views/Events.vue') },
-      { path: 'knowledge', name: 'Knowledge', component: () => import('../views/Knowledge.vue') },
-      { path: 'statistics', name: 'Statistics', component: () => import('../views/Statistics.vue') },
+      { path: '', redirect: '/yearbooks' },
+      { path: 'yearbooks', name: 'Yearbooks', component: () => import('@/views/YearbookHome.vue') },
+      { path: 'outlines', name: 'Outlines', component: () => import('@/views/OutlineManage.vue') },
+      { path: 'materials', name: 'Materials', component: () => import('@/views/MaterialLibrary.vue') },
+      { path: 'materials/:folderId', name: 'MaterialFiles', component: () => import('@/views/MaterialFiles.vue') },
+      { path: 'compile', name: 'SmartCompile', component: () => import('@/views/SmartCompile.vue') },
+      { path: 'compile/entries', name: 'EntryManage', component: () => import('@/views/EntryManage.vue') },
+      { path: 'proofread', name: 'Proofread', component: () => import('@/views/Proofread.vue') },
     ],
   },
 ]
 
-const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes })
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
+})
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
-  if (to.meta.public || auth.token) {
+  if (to.meta.public || auth.isLoggedIn) {
     next()
   } else {
     next({ path: '/login', query: { redirect: to.fullPath } })
