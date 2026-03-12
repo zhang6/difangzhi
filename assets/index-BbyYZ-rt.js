@@ -1,0 +1,1 @@
+const t={not_started:"未开始",in_progress:"编纂中",completed:"已完成",submitted:"已提交",draft:"草稿",editing:"编辑中"},s={not_started:"info",in_progress:"warning",completed:"success",submitted:"success",draft:"info",editing:"warning"};export{t as S,s as a};

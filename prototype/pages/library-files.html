@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>文件管理</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+<style>html,body{height:100%;margin:0;overflow:hidden;}</style>
+</head>
+<body class="bg-slate-50 flex flex-col" style="height:100vh;">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <button class="hover:text-primary" onclick="window.parent.loadPage('pages/library.html',null)">资料库</button>
+      <span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">市政府办公室</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">市政府办公室</h1>
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:15px;">search</span>
+      <input type="text" placeholder="搜索文件..." class="pl-8 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-48"/>
+    </div>
+    <button class="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+      <span class="material-symbols-outlined icon-sm">create_new_folder</span>新建文件夹
+    </button>
+    <button class="flex items-center gap-1.5 px-3 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+      <span class="material-symbols-outlined icon-sm">drive_folder_upload</span>上传文件夹
+    </button>
+    <button class="flex items-center gap-1.5 px-4 py-2 text-sm text-white rounded-lg hover:shadow-md transition-all" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+      <span class="material-symbols-outlined icon-sm">upload_file</span>上传文件
+    </button>
+  </div>
+</div>
+
+<div class="flex flex-1 overflow-hidden">
+
+  <!-- 左侧文件夹树 -->
+  <div class="border-r border-slate-200 bg-white overflow-y-auto p-3" style="width:220px;flex-shrink:0;">
+    <p class="text-xs font-semibold text-slate-400 uppercase px-2 mb-2">文件夹</p>
+    <div class="space-y-0.5">
+      <div class="tree-item active"><span class="material-symbols-outlined text-blue-500" style="font-size:15px;">folder_open</span><span class="flex-1">全部文件</span><span class="text-xs text-slate-400">256</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">工作总结</span><span class="text-xs text-slate-400">48</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">会议纪要</span><span class="text-xs text-slate-400">82</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">政策文件</span><span class="text-xs text-slate-400">63</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">统计数据</span><span class="text-xs text-slate-400">35</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">图片资料</span><span class="text-xs text-slate-400">28</span></div>
+    </div>
+  </div>
+
+  <!-- 右侧文件列表 -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- 工具栏 -->
+    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" class="rounded w-4 h-4 border-slate-300"/>
+        <span class="text-xs text-slate-500">共 256 个文件</span>
+        <button class="flex items-center gap-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg text-red-500 hover:bg-red-50 opacity-50">
+          <span class="material-symbols-outlined" style="font-size:13px;">delete</span>批量删除
+        </button>
+        <button class="flex items-center gap-1 px-2.5 py-1 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+          <span class="material-symbols-outlined" style="font-size:13px;">download</span>批量下载
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <select class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none">
+          <option>全部类型</option><option>PDF</option><option>Word</option><option>Excel</option><option>图片</option>
+        </select>
+        <select class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none">
+          <option>上传时间</option><option>文件名</option><option>文件大小</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 文件表格 -->
+    <div class="flex-1 overflow-y-auto">
+      <table class="data-table">
+        <thead class="sticky top-0">
+          <tr>
+            <th class="w-8"><input type="checkbox" class="rounded w-4 h-4"/></th>
+            <th>文件名</th>
+            <th>类型</th>
+            <th>大小</th>
+            <th>上传者</th>
+            <th>上传时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 文件夹 -->
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-amber-500" style="font-size:20px;">folder</span><span class="font-medium text-slate-800">工作总结</span><span class="text-xs text-slate-400 ml-1">48 项</span></div></td>
+            <td><span class="badge badge-gray">文件夹</span></td>
+            <td>—</td><td>张明</td><td>2024-08-01</td>
+            <td><button class="text-xs text-primary hover:underline">打开</button></td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-amber-500" style="font-size:20px;">folder</span><span class="font-medium text-slate-800">会议纪要</span><span class="text-xs text-slate-400 ml-1">82 项</span></div></td>
+            <td><span class="badge badge-gray">文件夹</span></td>
+            <td>—</td><td>李华</td><td>2024-08-01</td>
+            <td><button class="text-xs text-primary hover:underline">打开</button></td>
+          </tr>
+          <!-- 文件 -->
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-500" style="font-size:20px;">picture_as_pdf</span>
+                <span class="text-slate-800">2024年度工作报告（终稿）.pdf</span>
+              </div>
+            </td>
+            <td><span class="badge badge-red">PDF</span></td>
+            <td class="text-xs text-slate-500">4.6 MB</td>
+            <td class="text-xs text-slate-500">张明</td>
+            <td class="text-xs text-slate-500">2024-11-08 14:32</td>
+            <td>
+              <div class="flex gap-2 text-xs">
+                <button class="text-primary hover:underline flex items-center gap-0.5">
+                  <span class="material-symbols-outlined" style="font-size:13px;">visibility</span>预览
+                </button>
+                <button class="text-slate-500 hover:underline flex items-center gap-0.5">
+                  <span class="material-symbols-outlined" style="font-size:13px;">download</span>下载
+                </button>
+                <button class="text-red-400 hover:underline flex items-center gap-0.5">
+                  <span class="material-symbols-outlined" style="font-size:13px;">delete</span>删除
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500" style="font-size:20px;">description</span><span class="text-slate-800">政府工作报告2024年度.docx</span></div></td>
+            <td><span class="badge badge-blue">Word</span></td>
+            <td class="text-xs text-slate-500">1.8 MB</td>
+            <td class="text-xs text-slate-500">李华</td>
+            <td class="text-xs text-slate-500">2024-11-06 09:15</td>
+            <td>
+              <div class="flex gap-2 text-xs">
+                <button class="text-primary hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">visibility</span>预览</button>
+                <button class="text-slate-500 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">download</span>下载</button>
+                <button class="text-red-400 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">delete</span>删除</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500" style="font-size:20px;">table_chart</span><span class="text-slate-800">2024年财政数据汇总表.xlsx</span></div></td>
+            <td><span class="badge badge-green">Excel</span></td>
+            <td class="text-xs text-slate-500">920 KB</td>
+            <td class="text-xs text-slate-500">王芳</td>
+            <td class="text-xs text-slate-500">2024-11-05 16:48</td>
+            <td>
+              <div class="flex gap-2 text-xs">
+                <button class="text-primary hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">visibility</span>预览</button>
+                <button class="text-slate-500 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">download</span>下载</button>
+                <button class="text-red-400 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">delete</span>删除</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500" style="font-size:20px;">description</span><span class="text-slate-800">城市发展规划说明文件.docx</span></div></td>
+            <td><span class="badge badge-blue">Word</span></td>
+            <td class="text-xs text-slate-500">2.1 MB</td>
+            <td class="text-xs text-slate-500">陈静</td>
+            <td class="text-xs text-slate-500">2024-11-04 11:20</td>
+            <td>
+              <div class="flex gap-2 text-xs">
+                <button class="text-primary hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">visibility</span>预览</button>
+                <button class="text-slate-500 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">download</span>下载</button>
+                <button class="text-red-400 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">delete</span>删除</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+            <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-red-500" style="font-size:20px;">picture_as_pdf</span><span class="text-slate-800">年终总结报告（审议稿）.pdf</span></div></td>
+            <td><span class="badge badge-red">PDF</span></td>
+            <td class="text-xs text-slate-500">3.3 MB</td>
+            <td class="text-xs text-slate-500">刘强</td>
+            <td class="text-xs text-slate-500">2024-11-02 15:05</td>
+            <td>
+              <div class="flex gap-2 text-xs">
+                <button class="text-primary hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">visibility</span>预览</button>
+                <button class="text-slate-500 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">download</span>下载</button>
+                <button class="text-red-400 hover:underline flex items-center gap-0.5"><span class="material-symbols-outlined" style="font-size:13px;">delete</span>删除</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 分页 -->
+    <div class="flex items-center justify-between px-5 py-3 border-t border-slate-200 bg-white flex-shrink-0 text-xs text-slate-500">
+      <span>显示 1-7 条，共 256 条</span>
+      <div class="flex items-center gap-1">
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-500 disabled:opacity-40">上一页</button>
+        <button class="px-2.5 py-1 bg-blue-600 text-white rounded-lg">1</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50">2</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50">3</button>
+        <span class="px-1">...</span>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50">37</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50">下一页</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

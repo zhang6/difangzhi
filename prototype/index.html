@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>智能年鉴编纂系统</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/style.css"/>
+<script>
+tailwind.config = {
+  theme: { extend: { colors: { primary: "#1a90ff", "bg-light": "#f5f7f8" } } }
+}
+</script>
+<style>
+  body { margin: 0; overflow: hidden; background: #f5f7f8; }
+  #sidebar { width: 220px; background: #0d1b2e; transition: width 0.25s; }
+  #mainFrame { border: none; display: block; }
+</style>
+</head>
+<body class="h-screen flex flex-col">
+
+<!-- ===== 顶部导航栏 ===== -->
+<header id="topNav" class="flex-shrink-0 flex items-center justify-between border-b border-slate-200 bg-white px-5 z-50" style="height:60px;">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-3" style="min-width:210px;">
+    <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+      <span class="material-symbols-outlined text-white icon-sm">auto_stories</span>
+    </div>
+    <span class="text-sm font-bold text-slate-900 whitespace-nowrap">智能年鉴编纂系统</span>
+  </div>
+
+  <!-- 模块导航 -->
+  <nav class="flex items-center h-full gap-1">
+    <button class="nav-tab flex items-center gap-1.5 px-4 h-full text-sm font-medium text-slate-500 hover:text-primary transition-colors active"
+            data-module="yearbook" onclick="switchModule('yearbook',this)">
+      <span class="material-symbols-outlined icon-sm">book_2</span>年鉴管理
+    </button>
+    <button class="nav-tab flex items-center gap-1.5 px-4 h-full text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+            data-module="outline" onclick="switchModule('outline',this)">
+      <span class="material-symbols-outlined icon-sm">account_tree</span>大纲管理
+    </button>
+    <button class="nav-tab flex items-center gap-1.5 px-4 h-full text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+            data-module="library" onclick="switchModule('library',this)">
+      <span class="material-symbols-outlined icon-sm">database</span>资料库
+    </button>
+    <button class="nav-tab flex items-center gap-1.5 px-4 h-full text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+            data-module="editor" onclick="switchModule('editor',this)">
+      <span class="material-symbols-outlined icon-sm">auto_fix_high</span>智能编纂
+    </button>
+    <button class="nav-tab flex items-center gap-1.5 px-4 h-full text-sm font-medium text-slate-500 hover:text-primary transition-colors"
+            data-module="review" onclick="switchModule('review',this)">
+      <span class="material-symbols-outlined icon-sm">rate_review</span>统稿
+    </button>
+  </nav>
+
+  <!-- 右侧用户区 -->
+  <div class="flex items-center gap-4">
+    <button class="relative p-1.5 text-slate-500 hover:text-primary transition-colors rounded-lg hover:bg-blue-50">
+      <span class="material-symbols-outlined icon-md">notifications</span>
+      <span class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">3</span>
+    </button>
+    <div class="w-px h-5 bg-slate-200"></div>
+    <button class="flex items-center gap-2 text-sm text-slate-700 hover:text-primary transition-colors rounded-lg px-2 py-1.5 hover:bg-blue-50"
+            onclick="switchModule('profile',document.querySelector('[data-module=profile]'))">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">张</div>
+      <span class="font-medium">张明</span>
+      <span class="material-symbols-outlined text-slate-400" style="font-size:16px;">expand_more</span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== 主体布局 ===== -->
+<div class="flex flex-1 overflow-hidden">
+
+  <!-- 左侧边栏 -->
+  <aside id="sidebar" class="flex-shrink-0 flex flex-col sidebar-scroll overflow-y-auto">
+
+    <!-- 模块标题 -->
+    <div class="px-5 py-4 border-b" style="border-color:rgba(255,255,255,0.08);">
+      <div id="sidebarBadge" class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-blue-400 icon-sm">book_2</span>
+        <span class="text-xs font-semibold text-blue-300 uppercase tracking-wider">年鉴管理</span>
+      </div>
+    </div>
+
+    <!-- 年鉴选择器 -->
+    <div id="yearbookSelector" class="px-4 py-3 border-b" style="border-color:rgba(255,255,255,0.06);">
+      <div class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer" style="background:rgba(255,255,255,0.06);">
+        <span class="material-symbols-outlined text-slate-400 icon-sm">book_2</span>
+        <span class="text-xs text-slate-300 flex-1 truncate">2024年城市综合年鉴</span>
+        <span class="material-symbols-outlined text-slate-500" style="font-size:14px;">unfold_more</span>
+      </div>
+    </div>
+
+    <!-- 菜单列表 -->
+    <nav id="sidebarMenu" class="flex-1 py-3 px-1"></nav>
+
+    <!-- 底部版本信息 -->
+    <div class="px-5 py-3 border-t" style="border-color:rgba(255,255,255,0.06);">
+      <p class="text-xs text-slate-600">v2.4.0 · 2024年版</p>
+    </div>
+  </aside>
+
+  <!-- 主内容 iframe -->
+  <main class="flex-1 overflow-hidden">
+    <iframe id="mainFrame" src="pages/dashboard.html"
+            class="w-full" style="height:calc(100vh - 60px);"></iframe>
+  </main>
+</div>
+
+<script>
+const MENUS = {
+  yearbook: {
+    icon: 'book_2', title: '年鉴管理',
+    items: [
+      { icon: 'grid_view',      text: '年鉴列表',   page: 'pages/dashboard.html' },
+      { icon: 'add_circle',     text: '新建年鉴',   page: 'pages/dashboard.html' },
+    ]
+  },
+  outline: {
+    icon: 'account_tree', title: '大纲管理',
+    items: [
+      { icon: 'list_alt',       text: '大纲列表',   page: 'pages/outline.html' },
+      { icon: 'file_upload',    text: '导入大纲',   page: 'pages/outline-import.html' },
+      { icon: 'how_to_reg',     text: '任务指派',   page: 'pages/outline-assign.html' },
+      { icon: 'folder_open',    text: '资料管理',   page: 'pages/outline-material.html' },
+    ]
+  },
+  library: {
+    icon: 'database', title: '资料库',
+    items: [
+      { icon: 'corporate_fare', text: '单位列表',   page: 'pages/library.html' },
+      { icon: 'folder_tree',    text: '文件管理',   page: 'pages/library-files.html' },
+      { icon: 'cloud_upload',   text: '上传文件',   page: 'pages/library-files.html' },
+    ]
+  },
+  editor: {
+    icon: 'auto_fix_high', title: '智能编纂',
+    items: [
+      { icon: 'auto_fix_high',     text: '编纂主界面', page: 'pages/editor.html' },
+      { icon: 'history',           text: '历史数据',   page: 'pages/editor-history.html' },
+      { icon: 'draft',             text: '草稿记录',   page: 'pages/editor-draft.html' },
+      { icon: 'difference',        text: '对比审阅',   page: 'pages/editor-diff.html' },
+      { icon: 'fact_check',        text: '数据检测',   page: 'pages/editor-detect.html' },
+    ]
+  },
+  review: {
+    icon: 'rate_review', title: '统稿管理',
+    items: [
+      { icon: 'menu_book',          text: '统稿主界面', page: 'pages/review.html' },
+      { icon: 'comment',            text: '批注管理',   page: 'pages/review-comment.html' },
+      { icon: 'history',            text: '版本历史',   page: 'pages/review-history.html' },
+      { icon: 'file_download',      text: '导出文档',   page: 'pages/review-export.html' },
+    ]
+  },
+  profile: {
+    icon: 'person', title: '个人中心',
+    items: [
+      { icon: 'account_circle',  text: '个人信息',   page: 'pages/profile.html' },
+      { icon: 'assignment',      text: '我的任务',   page: 'pages/my-task.html' },
+      { icon: 'logout',          text: '退出登录',   page: 'pages/login.html' },
+    ]
+  }
+};
+
+let activeModule = 'yearbook';
+let activePage   = 'pages/dashboard.html';
+
+function switchModule(module, btn) {
+  activeModule = module;
+  const data = MENUS[module];
+
+  // 更新顶部 tab
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // 更新侧边栏标题
+  document.getElementById('sidebarBadge').innerHTML =
+    `<span class="material-symbols-outlined text-blue-400 icon-sm">${data.icon}</span>
+     <span class="text-xs font-semibold text-blue-300 uppercase tracking-wider">${data.title}</span>`;
+
+  // 隐藏年鉴选择器（非年鉴/大纲/编纂/统稿模块）
+  const sel = document.getElementById('yearbookSelector');
+  sel.style.display = ['yearbook','outline','editor','review'].includes(module) ? '' : 'none';
+
+  // 渲染菜单
+  const nav = document.getElementById('sidebarMenu');
+  nav.innerHTML = data.items.map((item, i) =>
+    `<div class="sidebar-item${i===0?' active':''}" onclick="loadPage('${item.page}',this)">
+      <span class="material-symbols-outlined">${item.icon}</span>
+      <span>${item.text}</span>
+    </div>`
+  ).join('');
+
+  // 加载第一项
+  if (data.items.length) loadPage(data.items[0].page, null, true);
+}
+
+function loadPage(page, el, skipActive) {
+  activePage = page;
+  if (!skipActive) {
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
+  document.getElementById('mainFrame').src = page;
+}
+
+// 初始化
+switchModule('yearbook', document.querySelector('[data-module="yearbook"]'));
+</script>
+</body>
+</html>

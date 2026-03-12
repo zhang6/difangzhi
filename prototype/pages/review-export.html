@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>导出文档</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+</head>
+<body class="bg-slate-50">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <span>统稿</span><span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">导出文档</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">导出文档</h1>
+  </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-6 py-8">
+  <div class="grid grid-cols-2 gap-6">
+
+    <!-- 左侧：导出设置 -->
+    <div class="space-y-5">
+
+      <!-- 年鉴信息 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500 icon-sm">book_2</span>导出年鉴
+        </h3>
+        <div class="bg-blue-50 rounded-xl p-3 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-blue-600" style="font-size:20px;">auto_stories</span>
+          </div>
+          <div>
+            <p class="text-sm font-medium text-slate-800">2024年城市综合发展年鉴</p>
+            <p class="text-xs text-slate-500">共 12 章节 · 约 48,000 字 · v8</p>
+          </div>
+          <span class="badge badge-blue ml-auto">当前版本</span>
+        </div>
+      </div>
+
+      <!-- 导出格式 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500 icon-sm">file_present</span>导出格式
+        </h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-blue-500 bg-blue-50 cursor-pointer">
+            <input type="radio" name="format" checked class="text-blue-600"/>
+            <span class="material-symbols-outlined text-blue-600" style="font-size:20px;">description</span>
+            <div>
+              <p class="text-sm font-medium text-slate-800">Word 文档 (.docx)</p>
+              <p class="text-xs text-slate-500">可编辑，支持批注和修订</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 cursor-pointer">
+            <input type="radio" name="format" class="text-blue-600"/>
+            <span class="material-symbols-outlined text-red-500" style="font-size:20px;">picture_as_pdf</span>
+            <div>
+              <p class="text-sm font-medium text-slate-800">PDF 文档 (.pdf)</p>
+              <p class="text-xs text-slate-500">固定排版，适合印刷和归档</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 cursor-pointer">
+            <input type="radio" name="format" class="text-blue-600"/>
+            <span class="material-symbols-outlined text-slate-500" style="font-size:20px;">code</span>
+            <div>
+              <p class="text-sm font-medium text-slate-800">Markdown (.md)</p>
+              <p class="text-xs text-slate-500">纯文本格式，便于二次处理</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- 导出范围 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500 icon-sm">format_list_bulleted</span>导出范围
+        </h3>
+        <div class="space-y-2">
+          <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="radio" name="range" checked class="text-blue-600"/> 全文导出（12章节）
+          </label>
+          <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="radio" name="range" class="text-blue-600"/> 选定章节导出
+          </label>
+        </div>
+        <div class="mt-3 space-y-1 pl-5 text-xs text-slate-500">
+          <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded w-3.5 h-3.5"/> 第一章 综述</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded w-3.5 h-3.5"/> 第二章 政治建设</label>
+          <label class="flex items-center gap-2"><input type="checkbox" checked class="rounded w-3.5 h-3.5"/> 第三章 经济发展</label>
+          <label class="flex items-center gap-2"><input type="checkbox" class="rounded w-3.5 h-3.5"/> 第四章 社会事业（未完成）</label>
+          <label class="flex items-center gap-2"><input type="checkbox" class="rounded w-3.5 h-3.5"/> 第五章 生态环境（未完成）</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：格式配置 + 预览 -->
+    <div class="space-y-5">
+
+      <!-- Word 格式配置 -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5">
+        <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-blue-500 icon-sm">tune</span>格式配置
+        </h3>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5">Word 模板</label>
+            <select class="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <option>标准政府年鉴模板</option>
+              <option>简洁版模板</option>
+              <option>自定义上传模板</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1.5">页面设置</label>
+            <div class="grid grid-cols-2 gap-2">
+              <select class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none">
+                <option>A4 纸张</option><option>A3 纸张</option>
+              </select>
+              <select class="text-xs border border-slate-300 rounded-lg px-2 py-1.5 focus:outline-none">
+                <option>纵向排版</option><option>横向排版</option>
+              </select>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" checked class="rounded w-4 h-4 text-blue-600"/>
+              包含封面页
+            </label>
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" checked class="rounded w-4 h-4 text-blue-600"/>
+              包含目录页
+            </label>
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" checked class="rounded w-4 h-4 text-blue-600"/>
+              自动生成页眉页脚
+            </label>
+            <label class="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" class="rounded w-4 h-4 text-blue-600"/>
+              包含未解决批注
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 文档预览 -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-blue-500 icon-sm">preview</span>预览样式
+          </h3>
+        </div>
+        <div class="p-4 bg-slate-50">
+          <div class="bg-white border border-slate-200 rounded-lg shadow-sm p-4 text-[11px] leading-5" style="transform:scale(0.9);transform-origin:top left;width:111%;">
+            <div class="text-center mb-3">
+              <p class="text-sm font-bold">2024年城市综合发展年鉴</p>
+              <p class="text-slate-500 mt-1">XX市地方志编纂办公室</p>
+              <p class="text-slate-400">二〇二四年</p>
+            </div>
+            <div class="border-t border-b border-slate-200 py-2 mb-2">
+              <p class="font-semibold">目录</p>
+              <div class="mt-1 space-y-0.5 text-slate-600">
+                <div class="flex justify-between"><span>第一章 综述</span><span>1</span></div>
+                <div class="flex justify-between pl-3"><span>1.1 城市概况</span><span>2</span></div>
+                <div class="flex justify-between pl-3"><span>1.2 自然地理</span><span>5</span></div>
+                <div class="flex justify-between"><span>第二章 政治建设</span><span>8</span></div>
+              </div>
+            </div>
+            <p class="text-slate-600">第一章 综述 ...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 导出按钮 -->
+      <button class="w-full py-3 text-sm text-white rounded-xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:shadow-lg"
+              style="background:linear-gradient(135deg,#1a90ff,#0059b3);"
+              onclick="startExport()">
+        <span class="material-symbols-outlined icon-md">download</span>
+        开始导出文档
+      </button>
+
+      <div id="exportProgress" class="hidden bg-white rounded-xl border border-blue-200 p-4 fade-in">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="flex gap-1">
+            <span class="ai-dot"></span><span class="ai-dot"></span><span class="ai-dot"></span>
+          </div>
+          <span class="text-xs text-blue-700 font-medium">正在生成 Word 文档...</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="expFill" style="width:0%"></div></div>
+        <p class="text-xs text-slate-400 mt-2">预计需要 15-30 秒，请稍候</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function startExport(){
+  document.getElementById('exportProgress').classList.remove('hidden');
+  let pct=0;
+  const t=setInterval(()=>{
+    pct=Math.min(pct+Math.random()*12,100);
+    document.getElementById('expFill').style.width=pct+'%';
+    if(pct>=100){
+      clearInterval(t);
+      setTimeout(()=>{
+        document.getElementById('exportProgress').innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-green-500 icon-md">check_circle</span>
+            <div>
+              <p class="text-sm font-medium text-green-700">文档生成完成！</p>
+              <p class="text-xs text-slate-500">2024年城市综合发展年鉴_v8.docx · 2.4 MB</p>
+            </div>
+            <button class="ml-auto px-3 py-1.5 text-xs text-white rounded-lg flex items-center gap-1" style="background:#1a90ff;">
+              <span class="material-symbols-outlined" style="font-size:14px;">download</span>下载
+            </button>
+          </div>`;
+      }, 300);
+    }
+  }, 180);
+}
+</script>
+
+</body>
+</html>
