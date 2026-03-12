@@ -1,6 +1,9 @@
 package com.chronicle.service;
 
-import com.chronicle.entity.*;
+import com.chronicle.entity.YbAnnotation;
+import com.chronicle.entity.YbEntry;
+import com.chronicle.entity.YbEntryVersion;
+import com.chronicle.entity.YbHistoryData;
 import com.chronicle.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,21 +18,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EntryService {
 
-    private final YbEntryRepository entryRepo;
-    private final YbEntryVersionRepository versionRepo;
-    private final YbAnnotationRepository annotationRepo;
-    private final YbHistoryDataRepository historyRepo;
+    private final EntryRepository entryRepo;
+    private final EntryVersionRepository versionRepo;
+    private final AnnotationRepository annotationRepo;
+    private final HistoryDataRepository historyRepo;
 
-    public List<YbEntry> listByOutline(UUID outlineId) {
-        return entryRepo.findByOutlineIdOrderBySortOrder(outlineId);
-    }
-
-    public Page<YbEntry> listByOutlinePaged(UUID outlineId, Pageable pageable) {
-        return entryRepo.findByOutlineId(outlineId, pageable);
+    public Page<YbEntry> listByOutline(UUID outlineId, Pageable pageable) {
+        return entryRepo.findByOutlineIdOrderBySortOrderAsc(outlineId, pageable);
     }
 
     public YbEntry getById(UUID id) {
-        return entryRepo.findById(id).orElseThrow();
+        return entryRepo.findById(id).orElseThrow(() -> new RuntimeException("条目不存在"));
     }
 
     public YbEntry create(YbEntry entry) {
@@ -37,13 +36,13 @@ public class EntryService {
     }
 
     public YbEntry update(UUID id, YbEntry updates) {
-        YbEntry e = entryRepo.findById(id).orElseThrow();
-        if (updates.getTitle() != null) e.setTitle(updates.getTitle());
-        if (updates.getOriginalContent() != null) e.setOriginalContent(updates.getOriginalContent());
-        if (updates.getAiContent() != null) e.setAiContent(updates.getAiContent());
-        if (updates.getStatus() != null) e.setStatus(updates.getStatus());
-        if (updates.getSortOrder() != null) e.setSortOrder(updates.getSortOrder());
-        return entryRepo.save(e);
+        YbEntry entry = getById(id);
+        if (updates.getTitle() != null) entry.setTitle(updates.getTitle());
+        if (updates.getOriginalContent() != null) entry.setOriginalContent(updates.getOriginalContent());
+        if (updates.getAiContent() != null) entry.setAiContent(updates.getAiContent());
+        if (updates.getStatus() != null) entry.setStatus(updates.getStatus());
+        if (updates.getSortOrder() != null) entry.setSortOrder(updates.getSortOrder());
+        return entryRepo.save(entry);
     }
 
     @Transactional
@@ -53,7 +52,7 @@ public class EntryService {
         entryRepo.deleteById(id);
     }
 
-    public List<YbEntryVersion> getVersions(UUID entryId) {
+    public List<YbEntryVersion> listVersions(UUID entryId) {
         return versionRepo.findByEntryIdOrderByVersionDesc(entryId);
     }
 
@@ -61,7 +60,11 @@ public class EntryService {
         return versionRepo.save(version);
     }
 
-    public List<YbAnnotation> getAnnotations(UUID entryId) {
+    public void deleteVersion(UUID versionId) {
+        versionRepo.deleteById(versionId);
+    }
+
+    public List<YbAnnotation> listAnnotations(UUID entryId) {
         return annotationRepo.findByEntryIdOrderByCreatedAtDesc(entryId);
     }
 
@@ -69,10 +72,15 @@ public class EntryService {
         return annotationRepo.save(annotation);
     }
 
-    public YbAnnotation updateAnnotationStatus(UUID id, String status) {
-        YbAnnotation a = annotationRepo.findById(id).orElseThrow();
-        a.setProcessStatus(status);
-        return annotationRepo.save(a);
+    public YbAnnotation updateAnnotation(UUID id, YbAnnotation updates) {
+        YbAnnotation ann = annotationRepo.findById(id).orElseThrow(() -> new RuntimeException("批注不存在"));
+        if (updates.getContent() != null) ann.setContent(updates.getContent());
+        if (updates.getProcessStatus() != null) ann.setProcessStatus(updates.getProcessStatus());
+        return annotationRepo.save(ann);
+    }
+
+    public void deleteAnnotation(UUID id) {
+        annotationRepo.deleteById(id);
     }
 
     public List<YbHistoryData> searchHistory(String keyword) {

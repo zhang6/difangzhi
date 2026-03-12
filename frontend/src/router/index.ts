@@ -6,69 +6,60 @@ const router = createRouter({
   routes: [
     {
       path: '/login',
-      name: 'Login',
+      name: 'login',
       component: () => import('@/views/LoginView.vue'),
-      meta: { public: true },
     },
     {
       path: '/',
       component: () => import('@/layouts/AppLayout.vue'),
-      meta: { requiresAuth: true },
+      redirect: '/yearbooks',
       children: [
-        { path: '', redirect: '/yearbooks' },
         {
-          path: 'yearbooks',
-          name: 'YearbookManage',
+          path: '/yearbooks',
+          name: 'yearbooks',
           component: () => import('@/views/YearbookManage.vue'),
-          meta: { title: '年鉴管理' },
         },
         {
-          path: 'outlines',
-          name: 'OutlineManage',
+          path: '/outlines',
+          name: 'outlines',
           component: () => import('@/views/OutlineManage.vue'),
-          meta: { title: '大纲管理' },
         },
         {
-          path: 'resources',
-          name: 'ResourceLibrary',
+          path: '/resources',
+          name: 'resources',
           component: () => import('@/views/ResourceLibrary.vue'),
-          meta: { title: '资料库' },
         },
         {
-          path: 'resources/:folderId',
-          name: 'ResourceFiles',
+          path: '/resources/:folderId',
+          name: 'resource-files',
           component: () => import('@/views/ResourceFiles.vue'),
-          meta: { title: '资料文件' },
         },
         {
-          path: 'compile',
-          name: 'SmartCompile',
+          path: '/compile',
+          name: 'compile',
           component: () => import('@/views/SmartCompile.vue'),
-          meta: { title: '智能编纂' },
         },
         {
-          path: 'proofread',
-          name: 'ProofreadView',
+          path: '/proofread',
+          name: 'proofread',
           component: () => import('@/views/ProofreadView.vue'),
-          meta: { title: '统稿' },
-        },
-        {
-          path: 'profile',
-          name: 'PersonalCenter',
-          component: () => import('@/views/PersonalCenter.vue'),
-          meta: { title: '个人中心' },
         },
       ],
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/',
     },
   ],
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
   const auth = useAuthStore()
-  if (to.meta.public || auth.isLoggedIn) {
-    next()
-  } else {
-    next({ path: '/login', query: { redirect: to.fullPath } })
+  if (to.path !== '/login' && !auth.isLoggedIn) {
+    return '/login'
+  }
+  if (to.path === '/login' && auth.isLoggedIn) {
+    return '/'
   }
 })
 

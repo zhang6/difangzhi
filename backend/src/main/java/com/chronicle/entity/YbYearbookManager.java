@@ -2,11 +2,14 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "yb_yearbook_managers")
+@Table(name = "yb_yearbook_managers",
+       uniqueConstraints = @UniqueConstraint(columnNames = {"yearbook_id", "user_id"}))
 @Data
 public class YbYearbookManager {
 
@@ -20,11 +23,11 @@ public class YbYearbookManager {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private YbUser user;
 
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-    }
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }

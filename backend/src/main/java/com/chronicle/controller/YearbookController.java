@@ -31,6 +31,11 @@ public class YearbookController {
         return PageResult.of(yearbookService.list(keyword, status, pageable));
     }
 
+    @GetMapping("/stats")
+    public Map<String, Long> stats() {
+        return yearbookService.stats();
+    }
+
     @GetMapping("/{id}")
     public YbYearbook get(@PathVariable UUID id) {
         return yearbookService.getById(id);
@@ -58,7 +63,13 @@ public class YearbookController {
     }
 
     @PostMapping("/{id}/managers")
-    public YbYearbookManager setManager(@PathVariable UUID id, @RequestBody Map<String, String> body) {
-        return yearbookService.setManager(id, UUID.fromString(body.get("userId")));
+    public YbYearbookManager addManager(@PathVariable UUID id, @RequestBody Map<String, String> body) {
+        return yearbookService.addManager(id, UUID.fromString(body.get("userId")));
+    }
+
+    @DeleteMapping("/{id}/managers/{userId}")
+    public ResponseEntity<Void> removeManager(@PathVariable UUID id, @PathVariable UUID userId) {
+        yearbookService.removeManager(id, userId);
+        return ResponseEntity.ok().build();
     }
 }

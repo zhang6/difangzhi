@@ -2,7 +2,10 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +20,7 @@ public class YbEntry {
     @Column(name = "outline_id", nullable = false)
     private UUID outlineId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String title;
 
     @Column(name = "original_content", columnDefinition = "TEXT")
@@ -26,28 +29,20 @@ public class YbEntry {
     @Column(name = "ai_content", columnDefinition = "TEXT")
     private String aiContent;
 
-    @Column(name = "sort_order")
+    @Column(name = "sort_order", nullable = false)
     private Integer sortOrder = 0;
 
+    @Column(nullable = false, length = 20)
     private String status = "draft";
 
     @Column(name = "created_by")
     private UUID createdBy;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
+    private LocalDateTime updatedAt;
 }

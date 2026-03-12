@@ -2,7 +2,9 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,31 +22,32 @@ public class YbMaterialFile {
     @Column(name = "outline_id")
     private UUID outlineId;
 
-    @Column(name = "file_name", nullable = false)
+    @Column(name = "file_name", nullable = false, length = 255)
     private String fileName;
 
-    @Column(name = "file_path")
+    @Column(name = "file_path", nullable = false)
     private String filePath;
 
     @Column(name = "file_size")
-    private Long fileSize = 0L;
+    private Long fileSize;
 
-    @Column(name = "file_type")
+    @Column(name = "file_type", length = 20)
     private String fileType;
 
     @Column(name = "upload_year")
     private Integer uploadYear;
 
-    private String source = "upload";
+    @Column(length = 30)
+    private String source;
 
     @Column(name = "uploaded_by")
     private UUID uploadedBy;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "uploaded_by", insertable = false, updatable = false)
+    private YbUser uploader;
 
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-    }
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }

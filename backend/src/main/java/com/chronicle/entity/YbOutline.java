@@ -2,7 +2,10 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -20,37 +23,33 @@ public class YbOutline {
     @Column(name = "parent_id")
     private UUID parentId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String title;
 
     @Column(nullable = false)
     private Integer level = 1;
 
-    @Column(name = "sort_order")
+    @Column(name = "sort_order", nullable = false)
     private Integer sortOrder = 0;
 
+    @Column(nullable = false, length = 20)
     private String status = "not_started";
 
-    @Column(name = "unit_name")
+    @Column(name = "unit_name", length = 100)
     private String unitName;
 
     @Column(name = "assigned_user_id")
     private UUID assignedUserId;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assigned_user_id", insertable = false, updatable = false)
+    private YbUser assignedUser;
 
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
+    private LocalDateTime updatedAt;
 }

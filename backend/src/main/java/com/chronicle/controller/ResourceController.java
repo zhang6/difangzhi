@@ -21,11 +21,16 @@ public class ResourceController {
 
     @GetMapping("/folders")
     public PageResult<YbMaterialFolder> listFolders(
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int pageSize,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(defaultValue = "12") int pageSize) {
         var pageable = PageRequest.of(page - 1, pageSize, Sort.by("createdAt").descending());
         return PageResult.of(resourceService.listFolders(keyword, pageable));
+    }
+
+    @GetMapping("/folders/{id}")
+    public YbMaterialFolder getFolder(@PathVariable UUID id) {
+        return resourceService.getFolder(id);
     }
 
     @PostMapping("/folders")
@@ -47,9 +52,9 @@ public class ResourceController {
     @GetMapping("/files")
     public PageResult<YbMaterialFile> listFiles(
             @RequestParam UUID folderId,
+            @RequestParam(required = false) Integer year,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "12") int pageSize,
-            @RequestParam(required = false) Integer year) {
+            @RequestParam(defaultValue = "12") int pageSize) {
         var pageable = PageRequest.of(page - 1, pageSize, Sort.by("createdAt").descending());
         return PageResult.of(resourceService.listFiles(folderId, year, pageable));
     }

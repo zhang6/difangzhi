@@ -26,6 +26,11 @@ public class OutlineController {
         return outlineService.listByAssignedUser(userId);
     }
 
+    @GetMapping("/{id}")
+    public YbOutline get(@PathVariable UUID id) {
+        return outlineService.getById(id);
+    }
+
     @PostMapping
     public YbOutline create(@RequestBody YbOutline outline) {
         return outlineService.create(outline);

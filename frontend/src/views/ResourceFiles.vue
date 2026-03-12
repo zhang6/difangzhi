@@ -1,257 +1,230 @@
 <template>
-  <div class="resource-files">
-    <div class="page-header">
-      <div class="breadcrumb">
-        <el-breadcrumb separator="/">
-          <el-breadcrumb-item :to="{ path: '/resources' }">资料库</el-breadcrumb-item>
-          <el-breadcrumb-item>{{ folderName }}</el-breadcrumb-item>
-        </el-breadcrumb>
+  <div class="page-container bg-slate-50">
+    <!-- 头部 -->
+    <div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+          <button class="hover:text-primary" @click="$router.push('/resources')">资料库</button>
+          <span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+          <span class="text-slate-600 font-medium">{{ folder?.unit_name }}</span>
+        </div>
+        <h1 class="text-lg font-bold text-slate-900">{{ folder?.unit_name }}</h1>
       </div>
-      <div class="header-actions">
-        <el-radio-group v-model="yearFilter" size="small" @change="loadData">
-          <el-radio-button :value="0">全部</el-radio-button>
-          <el-radio-button :value="2025">2025</el-radio-button>
-          <el-radio-button :value="2024">2024</el-radio-button>
-          <el-radio-button :value="2023">2023</el-radio-button>
-        </el-radio-group>
-        <el-button type="primary" :icon="Upload" @click="uploadVisible = true">上传文件</el-button>
+      <div class="flex items-center gap-3">
+        <select v-model="yearFilter" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none" @change="loadFiles">
+          <option value="">全部年份</option>
+          <option v-for="y in yearOptions" :key="y" :value="y">{{ y }} 年</option>
+        </select>
+        <button
+          class="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all hover:shadow-md"
+          style="background:linear-gradient(135deg,#1a90ff,#0059b3);"
+          @click="uploadVisible=true"
+        >
+          <span class="material-symbols-outlined" style="font-size:16px;">upload_file</span>
+          上传文件
+        </button>
       </div>
     </div>
 
-    <el-card shadow="never">
-      <el-table v-loading="loading" :data="files" stripe style="width: 100%">
-        <el-table-column label="文件名" min-width="260">
-          <template #default="{ row }">
-            <div class="file-name">
-              <el-icon :size="20" :color="getFileColor(row.file_type)">
-                <Document />
-              </el-icon>
-              <span>{{ row.file_name }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="文件类型" width="100">
-          <template #default="{ row }">
-            <el-tag size="small" :type="getFileTagType(row.file_type)">
-              {{ (row.file_type || '').toUpperCase() }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="大小" width="100">
-          <template #default="{ row }">
-            {{ formatSize(row.file_size) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="年份" width="80" prop="upload_year" />
-        <el-table-column label="上传时间" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.created_at) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button text type="primary" size="small" @click="previewFile(row)">预览</el-button>
-            <el-button text type="primary" size="small" @click="downloadFile(row)">下载</el-button>
-            <el-button text type="danger" size="small" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="page"
-          :page-size="pageSize"
-          :total="total"
-          layout="total, prev, pager, next"
-          @current-change="loadData"
-        />
+    <div class="px-6 py-5">
+      <!-- 标签展示 -->
+      <div v-if="folder?.tags" class="flex items-center gap-2 mb-5 flex-wrap">
+        <span class="text-xs text-slate-500">标签：</span>
+        <span v-for="tag in folder.tags.split(',')" :key="tag" class="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">{{ tag.trim() }}</span>
       </div>
-    </el-card>
 
-    <!-- 上传文件 -->
-    <el-dialog v-model="uploadVisible" title="上传文件" width="500px" destroy-on-close>
-      <el-form label-width="80px">
-        <el-form-item label="年份">
-          <el-input-number v-model="uploadYear" :min="2020" :max="2030" />
-        </el-form-item>
-        <el-form-item label="选择文件">
-          <el-upload
-            ref="uploadRef"
-            :auto-upload="false"
-            :limit="5"
-            :on-exceed="() => ElMessage.warning('最多上传5个文件')"
-            accept=".doc,.docx,.pdf"
-            multiple
-            drag
+      <!-- 文件列表 -->
+      <div v-loading="loading" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+          <span class="text-sm font-medium text-slate-700">共 {{ total }} 个文件</span>
+        </div>
+
+        <div v-if="files.length === 0 && !loading" class="py-12 text-center text-slate-400 text-sm">暂无文件，点击右上角上传</div>
+
+        <div v-else class="divide-y divide-slate-100">
+          <div
+            v-for="file in files"
+            :key="file.id"
+            class="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 transition-colors group"
           >
-            <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
-            <div class="el-upload__text">拖拽文件到此处，或<em>点击上传</em></div>
-            <template #tip>
-              <div class="el-upload__tip">支持 Word(.doc/.docx) / PDF 格式，单文件不超过 5MB</div>
-            </template>
-          </el-upload>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="uploadVisible = false">取消</el-button>
-        <el-button type="primary" :loading="uploading" @click="handleUpload">开始上传</el-button>
-      </template>
-    </el-dialog>
+            <span class="material-symbols-outlined" :class="fileIconColor(file.file_type)" style="font-size:28px;">{{ fileIcon(file.file_type) }}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-slate-800 truncate">{{ file.file_name }}</p>
+              <p class="text-xs text-slate-400 mt-0.5">{{ formatSize(file.file_size) }} · {{ formatDate(file.created_at) }}</p>
+            </div>
+            <span v-if="file.upload_year" class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">{{ file.upload_year }}年</span>
+            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50" @click="handleDeleteFile(file)">
+                <span class="material-symbols-outlined" style="font-size:16px;">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <!-- 文件预览 -->
-    <el-dialog v-model="previewVisible" title="文件预览" width="80%" top="5vh" destroy-on-close>
-      <div v-if="previewUrl" style="height: 70vh">
-        <iframe :src="previewUrl" style="width: 100%; height: 100%; border: none;" />
+      <!-- 分页 -->
+      <div v-if="total > pageSize" class="flex justify-center mt-6">
+        <el-pagination v-model:current-page="page" :page-size="pageSize" :total="total" layout="total, prev, pager, next" @current-change="loadFiles" />
       </div>
-      <div v-else style="text-align: center; padding: 40px">
-        <el-text type="info">该文件类型暂不支持在线预览，请下载后查看</el-text>
+    </div>
+
+    <!-- 上传文件弹窗 -->
+    <div v-if="uploadVisible" class="fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.4);" @click.self="uploadVisible=false">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 fade-in">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h2 class="text-base font-semibold text-slate-900">上传文件</h2>
+          <button @click="uploadVisible=false" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+            <span class="material-symbols-outlined" style="font-size:20px;">close</span>
+          </button>
+        </div>
+        <div class="px-6 py-5">
+          <div
+            class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all"
+            @click="fileInputRef?.click()"
+            @dragover.prevent
+            @drop.prevent="handleDrop"
+          >
+            <span class="material-symbols-outlined text-slate-400 mb-2" style="font-size:40px;">cloud_upload</span>
+            <p class="text-sm text-slate-600 mb-1">点击或拖拽文件到此处</p>
+            <p class="text-xs text-slate-400">支持 Word(.doc/.docx)、PDF，单文件 ≤ 5MB</p>
+            <input ref="fileInputRef" type="file" class="hidden" multiple accept=".doc,.docx,.pdf" @change="handleFileChange"/>
+          </div>
+
+          <div v-if="uploadFiles.length > 0" class="mt-4 space-y-2">
+            <div v-for="(f, i) in uploadFiles" :key="i" class="flex items-center gap-3 bg-slate-50 rounded-lg p-2.5 text-xs">
+              <span class="material-symbols-outlined text-blue-500" style="font-size:18px;">description</span>
+              <span class="flex-1 truncate text-slate-700">{{ f.name }}</span>
+              <span class="text-slate-400">{{ formatSize(f.size) }}</span>
+              <button class="text-slate-400 hover:text-red-500 font-bold" @click="uploadFiles.splice(i,1)">×</button>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200">
+          <button @click="uploadVisible=false" class="px-5 py-2 text-sm text-slate-600 border border-slate-300 rounded-xl hover:bg-slate-50">取消</button>
+          <button
+            :disabled="uploadFiles.length === 0 || uploading"
+            class="px-5 py-2 text-sm text-white rounded-xl hover:shadow-md disabled:opacity-50"
+            style="background:linear-gradient(135deg,#1a90ff,#0059b3);"
+            @click="handleUpload"
+          >{{ uploading ? '上传中...' : `上传 ${uploadFiles.length} 个文件` }}</button>
+        </div>
       </div>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Upload, Document, UploadFilled } from '@element-plus/icons-vue'
+import { fetchFolder, fetchFiles, createFile, deleteFile } from '@/api/resource'
 import { useAuthStore } from '@/stores/auth'
-import { fetchFiles, uploadFile, deleteFile, getFileUrl } from '@/api/resource'
-import type { ResourceFile } from '@/types'
+import type { ResourceFolder, ResourceFile } from '@/types'
 
 const route = useRoute()
 const auth = useAuthStore()
-const folderId = route.params.folderId as string
-const folderName = (route.query.name as string) || '文件列表'
+const folderId = computed(() => route.params.folderId as string)
 
 const loading = ref(false)
 const uploading = ref(false)
+const folder = ref<ResourceFolder | null>(null)
 const files = ref<ResourceFile[]>([])
 const total = ref(0)
 const page = ref(1)
 const pageSize = 12
-const yearFilter = ref(0)
+const yearFilter = ref<number | ''>('')
+const yearOptions = [2024, 2023, 2022, 2021, 2020]
 
 const uploadVisible = ref(false)
-const uploadYear = ref(new Date().getFullYear())
-const uploadRef = ref()
+const fileInputRef = ref<HTMLInputElement>()
+const uploadFiles = ref<File[]>([])
 
-const previewVisible = ref(false)
-const previewUrl = ref('')
+async function loadFolder() {
+  folder.value = await fetchFolder(folderId.value)
+}
 
-async function loadData() {
+async function loadFiles() {
   loading.value = true
   try {
     const result = await fetchFiles({
-      folderId,
-      page: page.value,
-      pageSize,
-      year: yearFilter.value || null,
+      folderId: folderId.value,
+      year: yearFilter.value || undefined,
+      page: page.value, pageSize,
     })
     files.value = result.data
     total.value = result.total
-  } catch {
-    ElMessage.error('加载失败')
-  } finally {
-    loading.value = false
-  }
+  } catch { ElMessage.error('加载失败') }
+  finally { loading.value = false }
+}
+
+function handleFileChange(e: Event) {
+  const f = (e.target as HTMLInputElement).files
+  if (f) uploadFiles.value.push(...Array.from(f))
+}
+
+function handleDrop(e: DragEvent) {
+  const f = e.dataTransfer?.files
+  if (f) uploadFiles.value.push(...Array.from(f))
 }
 
 async function handleUpload() {
-  const fileList = uploadRef.value?.uploadRef?.uploadFiles
-  if (!fileList || fileList.length === 0) {
-    ElMessage.warning('请选择文件')
-    return
-  }
+  if (!folderId.value || uploadFiles.value.length === 0) return
   uploading.value = true
   try {
-    for (const item of fileList) {
-      const raw = item.raw as File
-      if (raw.size > 5 * 1024 * 1024) {
-        ElMessage.warning(`${raw.name} 超过5MB限制`)
-        continue
-      }
-      await uploadFile(raw, folderId, auth.user?.id || '', uploadYear.value)
+    for (const file of uploadFiles.value) {
+      await createFile({
+        folder_id: folderId.value,
+        file_name: file.name,
+        file_path: `/uploads/${folderId.value}/${file.name}`,
+        file_size: file.size,
+        file_type: file.name.split('.').pop()?.toLowerCase(),
+        upload_year: new Date().getFullYear(),
+        source: 'library',
+        uploaded_by: auth.user?.id,
+      })
     }
-    ElMessage.success('上传成功')
+    ElMessage.success(`成功上传 ${uploadFiles.value.length} 个文件`)
     uploadVisible.value = false
-    loadData()
-  } catch (e: any) {
-    ElMessage.error(e.message || '上传失败')
-  } finally {
-    uploading.value = false
-  }
+    uploadFiles.value = []
+    await loadFiles()
+    await loadFolder()
+  } catch (e: any) { ElMessage.error(e.message || '上传失败') }
+  finally { uploading.value = false }
 }
 
-async function previewFile(file: ResourceFile) {
-  if (!file.file_path) {
-    ElMessage.warning('文件路径不存在')
-    return
-  }
+async function handleDeleteFile(file: ResourceFile) {
   try {
-    const url = await getFileUrl(file.file_path)
-    if (file.file_type === 'pdf') {
-      previewUrl.value = url
-      previewVisible.value = true
-    } else {
-      previewUrl.value = ''
-      previewVisible.value = true
-    }
-  } catch {
-    ElMessage.error('获取预览链接失败')
-  }
-}
-
-async function downloadFile(file: ResourceFile) {
-  if (!file.file_path) return
-  try {
-    const url = await getFileUrl(file.file_path)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = file.file_name
-    a.click()
-  } catch {
-    ElMessage.error('下载失败')
-  }
-}
-
-async function handleDelete(file: ResourceFile) {
-  try {
-    await ElMessageBox.confirm(`确定删除「${file.file_name}」吗？`, '删除确认', { type: 'warning' })
-    await deleteFile(file.id, file.file_path || '', folderId)
+    await ElMessageBox.confirm(`确定删除文件「${file.file_name}」吗？`, '删除确认', { type: 'warning' })
+    await deleteFile(file.id)
     ElMessage.success('已删除')
-    loadData()
+    await loadFiles()
+    await loadFolder()
   } catch {}
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return bytes + 'B'
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB'
-  return (bytes / 1024 / 1024).toFixed(1) + 'MB'
+function fileIcon(type?: string) {
+  if (!type) return 'description'
+  if (type === 'pdf') return 'picture_as_pdf'
+  if (['doc', 'docx'].includes(type)) return 'description'
+  return 'draft'
 }
 
-function formatDate(str: string): string {
-  if (!str) return ''
-  return new Date(str).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+function fileIconColor(type?: string) {
+  if (!type) return 'text-slate-400'
+  if (type === 'pdf') return 'text-red-500'
+  return 'text-blue-500'
 }
 
-function getFileColor(type?: string): string {
-  const map: Record<string, string> = { pdf: '#f56c6c', doc: '#409eff', docx: '#409eff' }
-  return map[type || ''] || '#909399'
+function formatSize(bytes?: number) {
+  if (!bytes) return '0 KB'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / 1024 / 1024).toFixed(1) + ' MB'
 }
 
-function getFileTagType(type?: string): any {
-  const map: Record<string, string> = { pdf: 'danger', doc: '', docx: '' }
-  return map[type || ''] || 'info'
-}
+function formatDate(d: string) { return d ? d.substring(0, 10) : '' }
 
-onMounted(loadData)
+onMounted(async () => {
+  await loadFolder()
+  await loadFiles()
+})
 </script>
-
-<style scoped>
-.resource-files { max-width: 1200px; margin: 0 auto; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.header-actions { display: flex; gap: 12px; align-items: center; }
-.file-name { display: flex; align-items: center; gap: 8px; }
-.pagination-wrapper { display: flex; justify-content: center; margin-top: 16px; }
-</style>

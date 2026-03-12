@@ -3,6 +3,8 @@ package com.chronicle.dto;
 import com.chronicle.entity.YbUser;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class LoginResponse {
     private String token;
@@ -10,7 +12,7 @@ public class LoginResponse {
 
     @Data
     public static class UserInfo {
-        private String id;
+        private UUID id;
         private String username;
         private String name;
         private String role;
@@ -20,17 +22,17 @@ public class LoginResponse {
     }
 
     public static LoginResponse of(String token, YbUser u) {
-        LoginResponse resp = new LoginResponse();
-        resp.setToken(token);
-        UserInfo info = new UserInfo();
-        info.setId(u.getId().toString());
-        info.setUsername(u.getUsername());
-        info.setName(u.getName());
-        info.setRole(u.getRole());
-        info.setAvatarColor(u.getAvatarColor());
-        info.setPhone(u.getPhone());
-        info.setEmail(u.getEmail());
-        resp.setUser(info);
-        return resp;
+        LoginResponse r = new LoginResponse();
+        r.setToken(token);
+        UserInfo ui = new UserInfo();
+        ui.setId(u.getId());
+        ui.setUsername(u.getUsername());
+        ui.setName(u.getName());
+        ui.setRole(u.getRole());
+        ui.setAvatarColor(u.getAvatarColor());
+        ui.setPhone(u.getPhone());
+        ui.setEmail(u.getEmail());
+        r.setUser(ui);
+        return r;
     }
 }

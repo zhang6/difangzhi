@@ -1,8 +1,11 @@
 package com.chronicle.controller;
 
-import com.chronicle.dto.AiGenerateRequest;
+import com.chronicle.dto.AiRequest;
 import com.chronicle.dto.PageResult;
-import com.chronicle.entity.*;
+import com.chronicle.entity.YbAnnotation;
+import com.chronicle.entity.YbEntry;
+import com.chronicle.entity.YbEntryVersion;
+import com.chronicle.entity.YbHistoryData;
 import com.chronicle.service.AiMockService;
 import com.chronicle.service.EntryService;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +27,12 @@ public class EntryController {
     private final AiMockService aiService;
 
     @GetMapping
-    public List<YbEntry> list(@RequestParam UUID outlineId) {
-        return entryService.listByOutline(outlineId);
-    }
-
-    @GetMapping("/paged")
-    public PageResult<YbEntry> listPaged(
+    public PageResult<YbEntry> list(
             @RequestParam UUID outlineId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "100") int pageSize) {
-        var pageable = PageRequest.of(page - 1, pageSize, Sort.by("sortOrder"));
-        return PageResult.of(entryService.listByOutlinePaged(outlineId, pageable));
+            @RequestParam(defaultValue = "20") int pageSize) {
+        var pageable = PageRequest.of(page - 1, pageSize, Sort.by("sortOrder").ascending());
+        return PageResult.of(entryService.listByOutline(outlineId, pageable));
     }
 
     @GetMapping("/{id}")
@@ -58,9 +56,10 @@ public class EntryController {
         return ResponseEntity.ok().build();
     }
 
+    // Versions
     @GetMapping("/{id}/versions")
-    public List<YbEntryVersion> getVersions(@PathVariable UUID id) {
-        return entryService.getVersions(id);
+    public List<YbEntryVersion> listVersions(@PathVariable UUID id) {
+        return entryService.listVersions(id);
     }
 
     @PostMapping("/{id}/versions")
@@ -69,9 +68,16 @@ public class EntryController {
         return entryService.createVersion(version);
     }
 
+    @DeleteMapping("/versions/{versionId}")
+    public ResponseEntity<Void> deleteVersion(@PathVariable UUID versionId) {
+        entryService.deleteVersion(versionId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Annotations
     @GetMapping("/{id}/annotations")
-    public List<YbAnnotation> getAnnotations(@PathVariable UUID id) {
-        return entryService.getAnnotations(id);
+    public List<YbAnnotation> listAnnotations(@PathVariable UUID id) {
+        return entryService.listAnnotations(id);
     }
 
     @PostMapping("/{id}/annotations")
@@ -80,44 +86,50 @@ public class EntryController {
         return entryService.createAnnotation(annotation);
     }
 
-    @PutMapping("/annotations/{annotationId}/status")
-    public YbAnnotation updateAnnotationStatus(
-            @PathVariable UUID annotationId, @RequestBody Map<String, String> body) {
-        return entryService.updateAnnotationStatus(annotationId, body.get("status"));
+    @PutMapping("/annotations/{annotationId}")
+    public YbAnnotation updateAnnotation(@PathVariable UUID annotationId, @RequestBody YbAnnotation annotation) {
+        return entryService.updateAnnotation(annotationId, annotation);
     }
 
-    @PostMapping("/{id}/ai-generate")
-    public Map<String, String> aiGenerate(@PathVariable UUID id, @RequestBody AiGenerateRequest req) {
-        String content = aiService.generateEntry(req.getRawData(), req.getHistoryData());
-        YbEntry entry = entryService.getById(id);
-        entry.setAiContent(content);
-        entry.setStatus("editing");
-        entryService.update(id, entry);
-        return Map.of("content", content);
+    @DeleteMapping("/annotations/{annotationId}")
+    public ResponseEntity<Void> deleteAnnotation(@PathVariable UUID annotationId) {
+        entryService.deleteAnnotation(annotationId);
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/ai-rewrite")
-    public Map<String, String> aiRewrite(@RequestBody Map<String, String> body) {
-        return Map.of("content", aiService.rewrite(body.get("text")));
-    }
-
-    @PostMapping("/ai-expand")
-    public Map<String, String> aiExpand(@RequestBody Map<String, String> body) {
-        return Map.of("content", aiService.expand(body.get("text")));
-    }
-
-    @PostMapping("/ai-detect")
-    public List<Map<String, Object>> aiDetect(@RequestBody Map<String, String> body) {
-        return aiService.detectConflicts(body.get("content"));
-    }
-
-    @PostMapping("/ai-bot")
-    public Map<String, String> aiBot(@RequestBody Map<String, String> body) {
-        return Map.of("answer", aiService.botAnswer(body.get("question")));
-    }
-
+    // History
     @GetMapping("/history")
     public List<YbHistoryData> searchHistory(@RequestParam String keyword) {
         return entryService.searchHistory(keyword);
+    }
+
+    // AI endpoints
+    @PostMapping("/ai/generate")
+    public Map<String, String> aiGenerate(@RequestBody AiRequest req) {
+        String result = aiService.generateEntry(req.getRawData(), req.getHistoryData());
+        return Map.of("content", result);
+    }
+
+    @PostMapping("/ai/rewrite")
+    public Map<String, String> aiRewrite(@RequestBody AiRequest req) {
+        String result = aiService.rewrite(req.getContent());
+        return Map.of("content", result);
+    }
+
+    @PostMapping("/ai/expand")
+    public Map<String, String> aiExpand(@RequestBody AiRequest req) {
+        String result = aiService.expand(req.getContent());
+        return Map.of("content", result);
+    }
+
+    @PostMapping("/ai/detect")
+    public List<Map<String, Object>> aiDetect(@RequestBody AiRequest req) {
+        return aiService.detectConflicts(req.getContent());
+    }
+
+    @PostMapping("/ai/bot")
+    public Map<String, String> aiBot(@RequestBody AiRequest req) {
+        String answer = aiService.botAnswer(req.getPrompt());
+        return Map.of("answer", answer);
     }
 }

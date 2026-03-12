@@ -2,7 +2,9 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -18,22 +20,22 @@ public class YbEntryVersion {
     private UUID entryId;
 
     @Column(nullable = false)
-    private Integer version = 1;
+    private Integer version;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "revision_note")
+    @Column(name = "revision_note", length = 500)
     private String revisionNote;
 
     @Column(name = "editor_id")
     private UUID editorId;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "editor_id", insertable = false, updatable = false)
+    private YbUser editor;
 
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-    }
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 }
