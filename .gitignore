@@ -4,8 +4,11 @@ target/
 *.log
 .env
 .env.local
+.env.production.local
 .idea/
 .vscode/
 __pycache__/
 *.pyc
 .DS_Store
+*.jar
+*.class

@@ -3,14 +3,17 @@ spring:
     name: yearbook-backend
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/postgres}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    # Supabase Transaction Pooler（推荐）: jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
+    # Supabase Direct Connection: jdbc:postgresql://db.tqdosxaesqbwbhngvndj.supabase.co:5432/postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres?prepareThreshold=0}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres.tqdosxaesqbwbhngvndj}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
       minimum-idle: 2
       connection-timeout: 30000
+      keepalive-time: 30000
 
   jpa:
     hibernate:
@@ -21,6 +24,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         default_schema: public
+        # 兼容 Supabase Pooler
+        jdbc:
+          lob:
+            non_contextual_creation: true
     open-in-view: false
 
   servlet:
