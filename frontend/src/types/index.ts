@@ -3,7 +3,6 @@ export type UserRole = 'admin' | 'manager' | 'editor'
 export interface UserProfile {
   id: string
   username: string
-  password?: string
   name: string
   role: UserRole
   avatar_color?: string
@@ -13,32 +12,19 @@ export interface UserProfile {
   updated_at: string
 }
 
-export type YearbookStatus = 'not_started' | 'in_progress' | 'completed'
-
 export interface Yearbook {
   id: string
   name: string
   start_date: string
   end_date: string
-  cover_type: 'default_1' | 'default_2' | 'default_3' | 'custom'
+  cover_type: string
   cover_url?: string
-  status: YearbookStatus
+  status: 'not_started' | 'in_progress' | 'completed'
   progress: number
   created_by?: string
   created_at: string
   updated_at: string
-  managers?: YearbookManager[]
 }
-
-export interface YearbookManager {
-  id: string
-  yearbook_id: string
-  user_id: string
-  user_name?: string
-  created_at: string
-}
-
-export type OutlineStatus = 'not_started' | 'in_progress' | 'submitted'
 
 export interface OutlineNode {
   id: string
@@ -47,10 +33,10 @@ export interface OutlineNode {
   title: string
   level: number
   sort_order: number
-  status: OutlineStatus
+  status: string
   unit_name?: string
   assigned_user_id?: string
-  assigned_user_name?: string
+  assigned_user?: Partial<UserProfile>
   created_at: string
   updated_at: string
   children?: OutlineNode[]
@@ -70,16 +56,14 @@ export interface ResourceFile {
   folder_id: string
   outline_id?: string
   file_name: string
-  file_path?: string
-  file_size: number
+  file_path: string
+  file_size?: number
   file_type?: string
   upload_year?: number
-  source: 'upload' | 'split' | 'outline'
+  source?: string
   uploaded_by?: string
   created_at: string
 }
-
-export type EntryStatus = 'draft' | 'editing' | 'submitted'
 
 export interface Entry {
   id: string
@@ -88,7 +72,7 @@ export interface Entry {
   original_content?: string
   ai_content?: string
   sort_order: number
-  status: EntryStatus
+  status: string
   created_by?: string
   created_at: string
   updated_at: string
@@ -98,7 +82,7 @@ export interface EntryVersion {
   id: string
   entry_id: string
   version: number
-  content?: string
+  content: string
   revision_note?: string
   editor_id?: string
   editor_name?: string
@@ -109,20 +93,12 @@ export interface Annotation {
   id: string
   entry_id: string
   content: string
-  author_id: string
+  author_id?: string
   author_name?: string
-  annotation_type: 'mine' | 'revision'
-  process_status: 'pending' | 'processed'
+  annotation_type: string
+  process_status: string
   created_at: string
   updated_at: string
-}
-
-export interface Draft {
-  id: string
-  entry_id: string
-  content?: string
-  editor_id?: string
-  created_at: string
 }
 
 export interface HistoryData {
@@ -131,7 +107,7 @@ export interface HistoryData {
   outline_section?: string
   entry_title?: string
   content?: string
-  year?: number
+  year: number
   created_at: string
 }
 
@@ -145,8 +121,8 @@ export const STATUS_LABEL: Record<string, string> = {
   in_progress: '编纂中',
   completed: '已完成',
   submitted: '已提交',
-  draft: '草稿',
   editing: '编辑中',
+  draft: '草稿',
 }
 
 export const STATUS_TYPE: Record<string, string> = {
@@ -154,6 +130,6 @@ export const STATUS_TYPE: Record<string, string> = {
   in_progress: 'warning',
   completed: 'success',
   submitted: 'success',
+  editing: 'primary',
   draft: 'info',
-  editing: 'warning',
 }

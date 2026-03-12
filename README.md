@@ -1,77 +1,187 @@
 # 智能年鉴编纂系统
 
-结合大模型与NLP技术，实现年鉴编纂工作线上化管理。适用于编写地方志年鉴（如《江苏年鉴2024》《南京年鉴2025》）。
+> 基于 Vue 3 + Spring Boot + Supabase 的智能年鉴编纂管理平台
 
 ## 技术栈
 
-- **前端**: Vue 3 + TypeScript + Element Plus
-- **数据库**: Supabase (PostgreSQL)
-- **文件存储**: Supabase Storage
-- **认证**: Supabase Auth (JWT)
+| 层 | 技术 |
+|---|---|
+| 前端 | Vue 3 + TypeScript + Vite + Element Plus + Tailwind CSS |
+| 后端 | Spring Boot 3.2 + Java 17 + Spring Security + JPA |
+| 数据库 | Supabase (PostgreSQL 17) |
+| 认证 | JWT |
+| 部署 | Docker Compose / Vercel + Railway |
 
-## 模块导航
+## 演示账号
 
-| 模块 | 说明 |
-|------|------|
-| 年鉴管理 | 年鉴卡片列表，新建/编辑/删除，分配负责人，展示进度 |
-| 大纲管理 | 多级目录树，导入大纲，任务指派，资料收集关联 |
-| 资料库 | 供稿单位文件夹管理，Word/PDF文件上传/预览/下载/删除 |
-| 智能编纂 | 资料选择 + 原始数据填充 + AI生成条目 + 版本管理 + 数据检测 |
-| 统稿 | 大纲条目统一管理，内容编辑，批注协作，版本历史，导出Word |
-| 个人中心 | 个人信息编辑，我的任务列表 |
+| 账号 | 密码 | 角色 |
+|------|------|------|
+| admin | admin123 | 管理员 |
+| editor1 | 123456 | 编辑 |
+| editor2 | 123456 | 负责人 |
 
-## 权限角色
+---
 
-- **管理员(admin)**: 年鉴新增/编辑、分配负责人、大纲全操作
-- **负责人(manager)**: 仅查看被分配的年鉴
-- **编辑(editor)**: 仅对指定大纲进行智能编纂
+## 快速部署（Docker Compose）
 
-## 快速开始
+### 前置条件
+- Docker 20+
+- Docker Compose v2+
+- Supabase 项目（数据库密码）
+
+### 步骤
+
+**1. 克隆项目**
+```bash
+git clone <repo_url>
+cd <project>
+```
+
+**2. 配置环境变量**
+```bash
+cp .env.example .env
+# 编辑 .env，填写 SPRING_DATASOURCE_PASSWORD
+```
+
+> 数据库密码获取位置：Supabase Dashboard → Project Settings → Database → Database password
+
+**3. 一键启动**
+```bash
+docker-compose up -d --build
+```
+
+**4. 访问**
+- 前端页面：http://localhost
+- 后端 Swagger：http://localhost:8080/swagger-ui.html
+
+**5. 查看日志**
+```bash
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+**6. 停止服务**
+```bash
+docker-compose down
+```
+
+---
+
+## 分平台部署
+
+### 前端 → Vercel
+
+1. Fork/Push 代码到 GitHub
+2. 在 [Vercel](https://vercel.com) 导入仓库
+3. 配置构建设置：
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. 添加环境变量：
+   - `VITE_API_BASE_URL` = 后端服务地址（如 `https://your-backend.railway.app`）
+5. 部署完成
+
+### 后端 → Railway
+
+1. 在 [Railway](https://railway.app) 创建新项目
+2. 选择 "Deploy from GitHub repo"，选择仓库
+3. 设置 **Root Directory** 为 `backend`
+4. 添加环境变量：
+
+```
+SPRING_DATASOURCE_URL=jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:6543/postgres?prepareThreshold=0
+SPRING_DATASOURCE_USERNAME=postgres.tqdosxaesqbwbhngvndj
+SPRING_DATASOURCE_PASSWORD=<your_supabase_password>
+JWT_SECRET=<your_jwt_secret>
+```
+
+5. Railway 会自动检测 Spring Boot 项目并构建
+
+---
+
+## 本地开发
+
+### 前置条件
+- Java 17+
+- Node.js 20+
+- Maven 3.9+（或使用 `./mvnw`）
+
+### 启动后端
+
+```bash
+cd backend
+export SPRING_DATASOURCE_PASSWORD=your_password
+mvn spring-boot:run
+# 或：
+# SPRING_DATASOURCE_PASSWORD=xxx mvn spring-boot:run
+```
+
+后端启动后自动创建演示账号。
+
+### 启动前端
 
 ```bash
 cd frontend
 npm install
 npm run dev
+# 前端运行在 http://localhost:3000
 ```
 
-访问 http://localhost:3000
+---
 
-### 演示账号
+## 数据库
 
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | admin | admin123 |
-| 编辑 | editor1 | 123456 |
+项目使用 **Supabase** 云数据库（PostgreSQL 17）：
+- Project ID: `tqdosxaesqbwbhngvndj`
+- Region: ap-south-1
+- 表已通过 `supabase-init.sql` 初始化完毕
 
-## 数据库表
-
-| 表名 | 说明 |
-|------|------|
-| yb_users | 用户信息 |
-| yb_yearbooks | 年鉴 |
-| yb_yearbook_managers | 年鉴负责人关联 |
-| yb_outlines | 大纲节点（多级树形） |
-| yb_material_folders | 供稿单位文件夹 |
-| yb_material_files | 资料文件 |
-| yb_entries | 条目 |
-| yb_entry_versions | 条目版本 |
-| yb_annotations | 批注 |
-| yb_drafts | 草稿 |
-| yb_history_data | 历史数据 |
-
-## AI 功能（Mock）
-
-当前阶段所有 AI 功能均为 Mock 实现：
-- 条目AI生成、AI润色/扩写
-- 历史数据检索
-- 数据智能检测
-- 机器人问答
-
-## 构建部署
-
+如需重置数据库，执行：
 ```bash
-cd frontend
-npm run build
+# 在 Supabase Dashboard > SQL Editor 中运行 supabase-init.sql
 ```
 
-产出目录为 `frontend/dist`，可部署至任意静态服务或 Vercel / Netlify。
+---
+
+## 项目结构
+
+```
+├── backend/                 # Spring Boot 后端
+│   ├── src/main/java/com/chronicle/
+│   │   ├── config/          # 安全配置、异常处理、数据初始化
+│   │   ├── controller/      # REST 控制器
+│   │   ├── dto/             # 数据传输对象
+│   │   ├── entity/          # JPA 实体
+│   │   ├── repository/      # 数据访问层
+│   │   ├── security/        # JWT 认证
+│   │   └── service/         # 业务逻辑层
+│   ├── Dockerfile
+│   └── pom.xml
+├── frontend/                # Vue 3 前端
+│   ├── src/
+│   │   ├── api/             # HTTP 请求封装
+│   │   ├── components/      # 公共组件
+│   │   ├── layouts/         # 页面布局
+│   │   ├── router/          # 路由配置
+│   │   ├── stores/          # Pinia 状态管理
+│   │   ├── styles/          # 全局样式
+│   │   ├── types/           # TypeScript 类型
+│   │   └── views/           # 页面视图
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── package.json
+├── docker-compose.yml       # Docker 一键部署
+├── .env.example             # 环境变量模板
+└── supabase-init.sql        # 数据库初始化脚本
+```
+
+---
+
+## 功能模块
+
+- **年鉴管理**：年鉴 CRUD、进度统计、负责人分配
+- **大纲管理**：多级目录树、任务指派、资料上传
+- **资料库**：供稿单位文件夹管理、文件上传/下载
+- **智能编纂**：AI 生成条目、润色/扩写、版本管理、历史数据检索
+- **统稿**：富文本编辑、批注协作、版本历史、导出 Word
+- **个人中心**：个人信息管理、我的任务列表

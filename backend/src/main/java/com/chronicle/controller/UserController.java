@@ -1,7 +1,7 @@
 package com.chronicle.controller;
 
 import com.chronicle.entity.YbUser;
-import com.chronicle.repository.YbUserRepository;
+import com.chronicle.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,30 +13,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final YbUserRepository userRepo;
+    private final UserService userService;
 
     @GetMapping
     public List<YbUser> list() {
-        List<YbUser> users = userRepo.findAll();
-        users.forEach(u -> u.setPassword(null));
-        return users;
+        return userService.findAll();
     }
 
     @GetMapping("/{id}")
     public YbUser get(@PathVariable UUID id) {
-        YbUser u = userRepo.findById(id).orElseThrow();
-        u.setPassword(null);
-        return u;
+        return userService.findById(id);
     }
 
     @PutMapping("/{id}")
     public YbUser update(@PathVariable UUID id, @RequestBody YbUser updates) {
-        YbUser u = userRepo.findById(id).orElseThrow();
-        if (updates.getName() != null) u.setName(updates.getName());
-        if (updates.getPhone() != null) u.setPhone(updates.getPhone());
-        if (updates.getEmail() != null) u.setEmail(updates.getEmail());
-        YbUser saved = userRepo.save(u);
-        saved.setPassword(null);
-        return saved;
+        return userService.update(id, updates);
     }
 }

@@ -1,46 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Element Plus 变量覆盖 */
 :root {
-  --yb-primary: #409eff;
-  --yb-bg: #f5f7fa;
-  --yb-sidebar-bg: #fff;
-  --yb-header-height: 60px;
+  --el-color-primary: #1a90ff;
+  --el-color-primary-dark-2: #0059b3;
+  --el-color-primary-light-3: #66b5ff;
+  --el-border-radius-base: 8px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
+  font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f7f8;
+  color: #1e293b;
   margin: 0;
-  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  background: var(--yb-bg);
-  -webkit-font-smoothing: antialiased;
 }
 
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* 侧边栏样式 */
+.sidebar-item {
+  @apply flex items-center gap-2 px-3 py-2 mx-2 rounded-lg cursor-pointer text-slate-400 text-sm transition-all duration-150;
 }
-::-webkit-scrollbar-thumb {
-  background: #dcdfe6;
-  border-radius: 3px;
+.sidebar-item:hover {
+  @apply bg-white/10 text-white;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
+.sidebar-item.active {
+  @apply bg-primary text-white;
 }
-
-/* Element Plus 覆盖 */
-.el-card {
-  border-radius: 8px;
+.sidebar-icon {
+  font-size: 18px;
+  width: 20px;
+  flex-shrink: 0;
 }
 
-/* 富文本编辑器样式 */
-.ql-editor {
-  min-height: 200px;
-  font-size: 14px;
-  line-height: 1.8;
+/* 顶部导航Tab */
+.nav-tab {
+  @apply flex items-center gap-1.5 px-4 text-sm font-medium text-slate-500 hover:text-primary transition-colors cursor-pointer border-b-2 border-transparent;
+  height: 60px;
+}
+.nav-tab.active {
+  @apply text-primary border-primary;
 }
 
-/* 过渡动画 */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s ease;
+/* 状态徽章 */
+.badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
 }
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
+.badge-green { @apply bg-emerald-50 text-emerald-700; }
+.badge-yellow { @apply bg-amber-50 text-amber-700; }
+.badge-blue { @apply bg-blue-50 text-blue-700; }
+.badge-gray { @apply bg-slate-100 text-slate-600; }
+.badge-purple { @apply bg-purple-50 text-purple-700; }
+.badge-red { @apply bg-red-50 text-red-700; }
+
+/* 进度条 */
+.progress-track {
+  @apply h-1.5 bg-slate-100 rounded-full overflow-hidden;
+}
+.progress-fill {
+  @apply h-full rounded-full bg-gradient-to-r from-primary to-primary-dark transition-all duration-300;
+}
+.progress-fill.green {
+  @apply from-emerald-400 to-emerald-600;
+}
+
+/* 卡片悬浮效果 */
+.card-hover {
+  @apply transition-all duration-200;
+}
+.card-hover:hover {
+  @apply -translate-y-1 shadow-lg;
+}
+
+/* AI生成动画 */
+@keyframes ai-dot-bounce {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.ai-dot {
+  @apply w-2 h-2 rounded-full bg-primary inline-block;
+  animation: ai-dot-bounce 1.2s ease-in-out infinite;
+}
+.ai-dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* 树形节点 */
+.tree-node-item {
+  @apply flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm text-slate-600 hover:bg-slate-50 transition-colors;
+}
+.tree-node-item.active {
+  @apply bg-blue-50 text-blue-700 font-medium;
+}
+
+/* 富文本编辑器区域 */
+.rich-editor {
+  @apply outline-none min-h-[200px] leading-7 text-sm text-slate-700;
+}
+.rich-editor:focus { outline: none; }
+.rich-editor h1, .rich-editor h2, .rich-editor h3 {
+  @apply font-bold text-slate-900 mb-2;
+}
+.rich-editor p { @apply mb-3; }
+
+/* 滚动条样式 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-300; }
+
+/* 工具栏按钮 */
+.toolbar-btn {
+  @apply h-7 px-1.5 rounded text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors flex items-center justify-center;
+  min-width: 28px;
+  font-size: 13px;
+}
+
+/* 弹窗遮罩淡入 */
+.fade-in {
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Element Plus 尺寸统一 */
+.el-button { border-radius: 8px !important; }
+.el-input__wrapper { border-radius: 8px !important; }
+.el-select .el-input__wrapper { border-radius: 8px !important; }
+
+/* 页面内容最大宽度 */
+.page-container {
+  @apply h-full overflow-auto;
 }

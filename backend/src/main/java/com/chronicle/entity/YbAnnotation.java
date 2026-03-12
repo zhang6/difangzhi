@@ -2,7 +2,10 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,32 +20,27 @@ public class YbAnnotation {
     @Column(name = "entry_id", nullable = false)
     private UUID entryId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String content;
 
-    @Column(name = "author_id", nullable = false)
+    @Column(name = "author_id")
     private UUID authorId;
 
-    @Column(name = "annotation_type")
-    private String annotationType = "mine";
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "author_id", insertable = false, updatable = false)
+    private YbUser author;
 
-    @Column(name = "process_status")
+    @Column(name = "annotation_type", length = 20)
+    private String annotationType = "comment";
+
+    @Column(name = "process_status", length = 20)
     private String processStatus = "pending";
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
+    private LocalDateTime updatedAt;
 }

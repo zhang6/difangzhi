@@ -2,7 +2,10 @@ package com.chronicle.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.OffsetDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -14,38 +17,32 @@ public class YbUser {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String role = "editor";
 
-    @Column(name = "avatar_color")
+    @Column(name = "avatar_color", length = 20)
     private String avatarColor = "#1a90ff";
 
+    @Column(length = 20)
     private String phone;
+
+    @Column(length = 100)
     private String email;
 
-    @Column(name = "created_at")
-    private OffsetDateTime createdAt;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        createdAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
+    private LocalDateTime updatedAt;
 }
