@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>资料管理</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+<style>html,body{height:100%;margin:0;overflow:hidden;}</style>
+</head>
+<body class="bg-slate-50 flex flex-col" style="height:100vh;">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <span>大纲管理</span><span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">资料管理</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">资料管理</h1>
+  </div>
+  <div class="flex items-center gap-3">
+    <button class="flex items-center gap-1.5 px-4 py-2 text-sm border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+      <span class="material-symbols-outlined icon-sm">upload_file</span>上传资料
+    </button>
+    <button class="flex items-center gap-1.5 px-4 py-2 text-sm text-white rounded-lg hover:shadow-md transition-all" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+      <span class="material-symbols-outlined icon-sm">content_cut</span>资料切分
+    </button>
+  </div>
+</div>
+
+<div class="flex flex-1 overflow-hidden">
+  <!-- 左侧章节树 -->
+  <div class="border-r border-slate-200 bg-white overflow-y-auto" style="width:260px;flex-shrink:0;">
+    <div class="px-4 py-3 border-b border-slate-100">
+      <p class="text-xs font-semibold text-slate-500 uppercase mb-2">章节列表</p>
+    </div>
+    <div class="py-2 px-2">
+      <div class="tree-item active"><span class="material-symbols-outlined text-blue-500" style="font-size:15px;">folder_open</span><span class="flex-1">第一章 综述</span><span class="text-xs text-slate-400">3</span></div>
+      <div class="tree-item pl-6"><span class="material-symbols-outlined text-slate-400" style="font-size:14px;">article</span><span class="flex-1">1.1 城市概况</span><span class="text-xs text-slate-400">3</span></div>
+      <div class="tree-item pl-6"><span class="material-symbols-outlined text-slate-400" style="font-size:14px;">article</span><span class="flex-1">1.2 自然地理</span><span class="text-xs text-slate-400">1</span></div>
+      <div class="tree-item pl-6"><span class="material-symbols-outlined text-slate-400" style="font-size:14px;">article</span><span class="flex-1">1.3 行政区划</span><span class="text-xs text-slate-400">2</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="flex-1">第二章 政治建设</span><span class="text-xs text-slate-400">5</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-green-500" style="font-size:15px;">folder</span><span class="flex-1">第三章 经济发展</span><span class="text-xs text-slate-400">8</span></div>
+      <div class="tree-item"><span class="material-symbols-outlined text-purple-500" style="font-size:15px;">folder</span><span class="flex-1">第四章 社会事业</span><span class="text-xs text-slate-400">0</span></div>
+    </div>
+  </div>
+
+  <!-- 右侧资料列表 -->
+  <div class="flex-1 overflow-y-auto p-5">
+    <!-- 面包屑 -->
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-4">
+      <span>第一章 综述</span>
+      <span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">全部资料（6个文件）</span>
+    </div>
+
+    <!-- 上传区 -->
+    <div class="drop-zone p-6 flex items-center justify-center gap-4 mb-5 cursor-pointer">
+      <span class="material-symbols-outlined text-blue-400 icon-lg">cloud_upload</span>
+      <div>
+        <p class="text-sm font-medium text-slate-700">拖拽文件上传，或 <span class="text-primary cursor-pointer">点击选择</span></p>
+        <p class="text-xs text-slate-400">支持 PDF / Word / Excel / 图片，单文件最大 50MB</p>
+      </div>
+    </div>
+
+    <!-- 文件列表 -->
+    <div class="space-y-2">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 hover:border-blue-300 transition-colors group">
+        <input type="checkbox" class="rounded w-4 h-4 border-slate-300"/>
+        <span class="material-symbols-outlined text-red-500" style="font-size:26px;">picture_as_pdf</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 truncate">城市总体规划报告2024.pdf</p>
+          <div class="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
+            <span>5.2 MB</span><span>·</span>
+            <span>上传：张明</span><span>·</span>
+            <span>2024-10-15</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="badge badge-blue text-[10px]">已切分</span>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">content_cut</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">download</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"><span class="material-symbols-outlined" style="font-size:16px;">delete</span></button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 hover:border-blue-300 transition-colors group">
+        <input type="checkbox" class="rounded w-4 h-4 border-slate-300"/>
+        <span class="material-symbols-outlined text-blue-500" style="font-size:26px;">description</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 truncate">政府工作报告2024.docx</p>
+          <div class="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
+            <span>1.8 MB</span><span>·</span><span>上传：李华</span><span>·</span><span>2024-10-12</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="badge badge-gray text-[10px]">未切分</span>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">content_cut</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">download</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"><span class="material-symbols-outlined" style="font-size:16px;">delete</span></button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3 hover:border-blue-300 transition-colors group">
+        <input type="checkbox" class="rounded w-4 h-4 border-slate-300"/>
+        <span class="material-symbols-outlined text-green-500" style="font-size:26px;">table_chart</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-800 truncate">城市经济数据汇总表.xlsx</p>
+          <div class="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
+            <span>890 KB</span><span>·</span><span>上传：王芳</span><span>·</span><span>2024-10-10</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span class="badge badge-green text-[10px]">已切分</span>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">visibility</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">content_cut</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50"><span class="material-symbols-outlined" style="font-size:16px;">download</span></button>
+          <button class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"><span class="material-symbols-outlined" style="font-size:16px;">delete</span></button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="material-symbols-outlined text-blue-500" style="font-size:20px;">content_cut</span>
+          <p class="text-sm font-semibold text-slate-800">资料切分预览：城市总体规划报告2024.pdf</p>
+          <span class="badge badge-blue ml-auto">共 8 个片段</span>
+        </div>
+        <div class="space-y-1.5">
+          <div class="bg-white rounded-lg p-2.5 flex items-center gap-2 text-xs">
+            <span class="w-5 h-5 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">1</span>
+            <span class="flex-1 text-slate-600">前言及城市定位（第1-5页）</span>
+            <span class="text-slate-400">关联：1.1 城市概况</span>
+            <button class="text-primary hover:underline">重新分配</button>
+          </div>
+          <div class="bg-white rounded-lg p-2.5 flex items-center gap-2 text-xs">
+            <span class="w-5 h-5 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">2</span>
+            <span class="flex-1 text-slate-600">自然地理环境（第6-15页）</span>
+            <span class="text-slate-400">关联：1.2 自然地理</span>
+            <button class="text-primary hover:underline">重新分配</button>
+          </div>
+          <div class="bg-white rounded-lg p-2.5 flex items-center gap-2 text-xs">
+            <span class="w-5 h-5 rounded bg-blue-100 text-blue-600 flex items-center justify-center font-bold flex-shrink-0">3</span>
+            <span class="flex-1 text-slate-600">行政区划及机构（第16-22页）</span>
+            <span class="text-slate-400">关联：1.3 行政区划</span>
+            <button class="text-primary hover:underline">重新分配</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

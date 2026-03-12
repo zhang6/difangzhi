@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>对比审阅</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+<style>
+  html,body{height:100%;margin:0;overflow:hidden;}
+  .del-text{text-decoration:line-through;color:#ef4444;background:#fee2e2;padding:1px 2px;border-radius:2px;}
+  .add-text{color:#059669;background:#d1fae5;padding:1px 2px;border-radius:2px;}
+</style>
+</head>
+<body class="bg-slate-50 flex flex-col" style="height:100vh;">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <span>智能编纂</span><span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">对比审阅</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">对比审阅</h1>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
+      <button class="px-3 py-1.5 text-xs bg-white rounded-lg shadow-sm font-medium">双栏对比</button>
+      <button class="px-3 py-1.5 text-xs text-slate-500 rounded-lg hover:bg-white/60">追踪修订</button>
+    </div>
+    <button class="flex items-center gap-1.5 px-4 py-2 text-xs text-white rounded-lg" style="background:linear-gradient(135deg,#10b981,#059669);">
+      <span class="material-symbols-outlined icon-sm">check_circle</span>接受所有修改
+    </button>
+  </div>
+</div>
+
+<!-- 选择对比版本 -->
+<div class="bg-white border-b border-slate-100 px-6 py-3 flex items-center gap-6 flex-shrink-0">
+  <div class="flex items-center gap-2 text-xs">
+    <span class="text-slate-500 font-medium">对比：</span>
+    <select class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <option>v3 (AI生成)</option><option>v2 (手动编辑)</option>
+    </select>
+    <span class="text-slate-400">vs</span>
+    <select class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <option>v4 (当前版本)</option>
+    </select>
+  </div>
+  <div class="flex items-center gap-4 text-xs">
+    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-green-200 border border-green-400"></span>新增内容</span>
+    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-200 border border-red-400 line-through"></span>删除内容</span>
+    <span class="flex items-center gap-1.5 ml-auto text-slate-400">共 <strong class="text-slate-700">6</strong> 处修改</span>
+  </div>
+</div>
+
+<!-- 对比内容区 -->
+<div class="flex flex-1 overflow-hidden">
+  <!-- 左：旧版本 -->
+  <div class="flex-1 flex flex-col overflow-hidden border-r border-slate-200">
+    <div class="px-5 py-2.5 bg-red-50 border-b border-red-100 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+        <p class="text-xs font-semibold text-red-700">v3 — AI生成版本</p>
+        <span class="text-xs text-red-500 ml-auto">2024-11-09 13:45 · 742字</span>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5">
+      <div class="bg-white rounded-xl border border-red-100 p-5 text-sm text-slate-700 leading-7">
+        <p class="mb-3">2024年，XX市人民代表大会常务委员会<span class="del-text">深入学习贯彻习近平新时代中国特色社会主义思想</span>，坚持党的领导、人民当家作主、依法治国有机统一，围绕全市中心工作，充分发挥地方国家权力机关作用，<span class="del-text">立法、监督、代表等工作实现新突破</span>。</p>
+        <p class="mb-3">全年共召开人大常委会会议<span class="del-text">14次</span>，通过地方性法规<span class="del-text">4件</span>，听取专项报告<span class="del-text">16个</span>，开展执法检查<span class="del-text">6次</span>，依法行使重大事项决定权，批准年度预算及预算调整方案，严格把关人事任免，确保权力规范运行。</p>
+        <p>在代表工作方面，组织代表集中视察活动<span class="del-text">10次</span>，参与代表人数达<span class="del-text">300人次</span>，收集整理代表意见建议共计<span class="del-text">160条</span>。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右：新版本 -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="px-5 py-2.5 bg-green-50 border-b border-green-100 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+        <p class="text-xs font-semibold text-green-700">v4 — 当前版本（已修改）</p>
+        <span class="text-xs text-green-600 ml-auto">2024-11-09 14:32 · 856字</span>
+      </div>
+    </div>
+    <div class="flex-1 overflow-y-auto p-5">
+      <div class="bg-white rounded-xl border border-green-100 p-5 text-sm text-slate-700 leading-7">
+        <p class="mb-3">2024年，XX市人民代表大会常务委员会<span class="add-text">认真贯彻落实党的二十大精神，紧紧围绕全市中心工作</span>，充分发挥地方国家权力机关作用，积极履行立法、监督、重大事项决定和任免等职能，<span class="add-text">各项工作取得新进展</span>。</p>
+        <p class="mb-3">全年共召开人大常委会会议<span class="add-text">12次</span>，审议通过地方性法规<span class="add-text">3件</span>，修改法规2件，废止法规1件。听取审议专项工作报告<span class="add-text">14个</span>，开展执法检查<span class="add-text">5次</span>，专题询问2次。</p>
+        <p>在代表工作方面，组织人大代表集中视察活动<span class="add-text">8次</span>，参与代表人数达<span class="add-text">256人次</span>，收集整理代表意见建议共计<span class="add-text">142条</span>，已转办相关部门并跟踪落实。代表满意率达97.2%，较上年提升0.7个百分点。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部操作栏 -->
+<div class="bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+  <div class="flex items-center gap-3">
+    <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+      <span class="material-symbols-outlined" style="font-size:13px;">arrow_back</span>上一处
+    </button>
+    <span class="text-xs text-slate-500">1 / 6</span>
+    <button class="flex items-center gap-1.5 px-3 py-1.5 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+      <span class="material-symbols-outlined" style="font-size:13px;">arrow_forward</span>下一处
+    </button>
+  </div>
+  <div class="flex items-center gap-2">
+    <button class="flex items-center gap-1 px-3 py-1.5 text-xs border border-red-200 rounded-lg text-red-500 hover:bg-red-50">
+      <span class="material-symbols-outlined" style="font-size:13px;">close</span>拒绝修改
+    </button>
+    <button class="flex items-center gap-1 px-3 py-1.5 text-xs border border-green-200 rounded-lg text-green-600 hover:bg-green-50">
+      <span class="material-symbols-outlined" style="font-size:13px;">check</span>接受修改
+    </button>
+    <button class="flex items-center gap-1 px-4 py-1.5 text-xs text-white rounded-lg" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+      <span class="material-symbols-outlined" style="font-size:13px;">merge</span>合并并继续编辑
+    </button>
+  </div>
+</div>
+
+</body>
+</html>

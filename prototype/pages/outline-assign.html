@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>任务指派</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+</head>
+<body class="bg-slate-50">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <span>大纲管理</span><span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">任务指派</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">任务指派</h1>
+  </div>
+  <div class="flex items-center gap-3">
+    <select class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+      <option>2024年城市综合发展年鉴</option>
+    </select>
+    <button class="flex items-center gap-1.5 px-4 py-2 text-sm text-white rounded-lg hover:shadow-md transition-all" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+      <span class="material-symbols-outlined icon-sm">assignment_ind</span>批量指派
+    </button>
+  </div>
+</div>
+
+<!-- 统计概览 -->
+<div class="px-6 py-4 grid grid-cols-4 gap-4">
+  <div class="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-blue-50"><span class="material-symbols-outlined text-blue-600" style="font-size:18px;">assignment</span></div>
+    <div><p class="text-xl font-bold text-slate-900">23</p><p class="text-xs text-slate-500">总任务数</p></div>
+  </div>
+  <div class="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-green-50"><span class="material-symbols-outlined text-green-600" style="font-size:18px;">how_to_reg</span></div>
+    <div><p class="text-xl font-bold text-slate-900">15</p><p class="text-xs text-slate-500">已指派</p></div>
+  </div>
+  <div class="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-amber-50"><span class="material-symbols-outlined text-amber-600" style="font-size:18px;">pending</span></div>
+    <div><p class="text-xl font-bold text-slate-900">8</p><p class="text-xs text-slate-500">待指派</p></div>
+  </div>
+  <div class="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3">
+    <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-purple-50"><span class="material-symbols-outlined text-purple-600" style="font-size:18px;">group</span></div>
+    <div><p class="text-xl font-bold text-slate-900">8</p><p class="text-xs text-slate-500">参与人员</p></div>
+  </div>
+</div>
+
+<div class="px-6 pb-6">
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <!-- 表头工具栏 -->
+    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
+      <div class="flex items-center gap-3">
+        <input type="checkbox" class="rounded w-4 h-4 border-slate-300"/>
+        <span class="text-xs text-slate-500">共 23 条</span>
+        <button class="px-3 py-1 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-white transition-colors">
+          <span class="material-symbols-outlined" style="font-size:13px;">filter_list</span> 筛选
+        </button>
+      </div>
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:14px;">search</span>
+        <input type="text" placeholder="搜索章节..." class="pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 w-44"/>
+      </div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="w-8"><input type="checkbox" class="rounded w-4 h-4"/></th>
+          <th>章节名称</th>
+          <th>层级</th>
+          <th>负责人</th>
+          <th>截止日期</th>
+          <th>优先级</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4" checked/></td>
+          <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-blue-500" style="font-size:15px;">folder</span><span class="font-medium">第一章 综述</span></div></td>
+          <td><span class="badge badge-blue text-[10px]">章</span></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="badge badge-green">已完成</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">详情</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>1.1 城市概况</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px]">张</div><span class="text-xs">张明</span></div></td>
+          <td class="text-xs text-slate-600">2024-11-30</td>
+          <td><span class="badge badge-red text-[10px]">高</span></td>
+          <td><span class="badge badge-green">已提交</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>1.2 自然地理</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-[10px]">李</div><span class="text-xs">李华</span></div></td>
+          <td class="text-xs text-slate-600">2024-11-30</td>
+          <td><span class="badge badge-yellow text-[10px]">中</span></td>
+          <td><span class="badge badge-green">已提交</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-amber-500" style="font-size:15px;">folder</span><span class="font-medium">第二章 政治建设</span></div></td>
+          <td><span class="badge badge-blue text-[10px]">章</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td><span class="badge badge-yellow">编纂中</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">详情</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>2.1 党委工作</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-white text-[10px]">王</div><span class="text-xs">王芳</span></div></td>
+          <td class="text-xs text-slate-600">2024-11-25</td>
+          <td><span class="badge badge-red text-[10px]">高</span></td>
+          <td><span class="badge badge-green">已提交</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>2.2 人大工作</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td>
+            <button class="flex items-center gap-1 text-xs text-blue-500 border border-dashed border-blue-300 rounded-lg px-2 py-1 hover:bg-blue-50">
+              <span class="material-symbols-outlined" style="font-size:13px;">add</span>指派
+            </button>
+          </td>
+          <td class="text-xs text-slate-600">2024-11-25</td>
+          <td><span class="badge badge-yellow text-[10px]">中</span></td>
+          <td><span class="badge badge-yellow">编纂中</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>2.3 政协工作</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td>
+            <button class="flex items-center gap-1 text-xs text-blue-500 border border-dashed border-blue-300 rounded-lg px-2 py-1 hover:bg-blue-50">
+              <span class="material-symbols-outlined" style="font-size:13px;">add</span>指派
+            </button>
+          </td>
+          <td class="text-xs text-slate-600">—</td>
+          <td><span class="badge badge-gray text-[10px]">低</span></td>
+          <td><span class="badge badge-gray">未开始</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2"><span class="material-symbols-outlined text-green-500" style="font-size:15px;">folder</span><span class="font-medium">第三章 经济发展</span></div></td>
+          <td><span class="badge badge-blue text-[10px]">章</span></td>
+          <td>—</td><td>—</td><td>—</td>
+          <td><span class="badge badge-yellow">编纂中</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">详情</button></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="rounded w-4 h-4"/></td>
+          <td><div class="flex items-center gap-2 pl-5"><span class="material-symbols-outlined text-slate-400" style="font-size:15px;">article</span><span>3.1 GDP总量分析</span></div></td>
+          <td><span class="badge badge-gray text-[10px]">节</span></td>
+          <td><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white text-[10px]">陈</div><span class="text-xs">陈静</span></div></td>
+          <td class="text-xs text-orange-600 font-medium">2024-11-20 ⚠</td>
+          <td><span class="badge badge-red text-[10px]">高</span></td>
+          <td><span class="badge badge-yellow">编纂中</span></td>
+          <td class="text-xs"><button class="text-primary hover:underline">编辑</button></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="flex items-center justify-between px-5 py-3 border-t border-slate-100 text-xs text-slate-500">
+      <span>显示 1-9 条，共 23 条</span>
+      <div class="flex items-center gap-1">
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600 disabled:opacity-40">上一页</button>
+        <button class="px-2.5 py-1 bg-blue-600 text-white rounded-lg">1</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">2</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">3</button>
+        <button class="px-2.5 py-1 border border-slate-300 rounded-lg hover:bg-slate-50 text-slate-600">下一页</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
