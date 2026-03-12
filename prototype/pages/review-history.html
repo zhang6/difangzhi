@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>版本历史</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+<style>html,body{height:100%;margin:0;overflow:hidden;}</style>
+</head>
+<body class="bg-slate-50 flex flex-col" style="height:100vh;">
+
+<div class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+  <div>
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+      <span>统稿</span><span class="material-symbols-outlined" style="font-size:12px;">chevron_right</span>
+      <span class="text-slate-600 font-medium">版本历史</span>
+    </div>
+    <h1 class="text-lg font-bold text-slate-900">版本历史</h1>
+  </div>
+  <select class="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none">
+    <option>全文版本</option><option>第二章 政治建设</option><option>2.2 人大工作</option>
+  </select>
+</div>
+
+<div class="flex flex-1 overflow-hidden">
+  <!-- 左侧版本列表 -->
+  <div class="border-r border-slate-200 bg-white overflow-y-auto" style="width:300px;flex-shrink:0;">
+    <div class="px-4 py-3 border-b border-slate-100">
+      <p class="text-xs font-semibold text-slate-500">共 8 个版本</p>
+    </div>
+    <div class="divide-y divide-slate-100">
+
+      <div class="p-4 bg-blue-50 cursor-pointer" style="border-left:3px solid #1a90ff;">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-blue-700">v8 · 当前版本</span>
+          <span class="badge badge-blue text-[10px]">最新</span>
+        </div>
+        <p class="text-xs text-slate-600 mb-1">完成第三章数据核查及修正</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px]">张</div>
+          <span>张明</span><span>·</span><span>今天 14:32</span>
+        </div>
+      </div>
+
+      <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="selectVersion(this)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-700">v7</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-1">修改人大工作章节，采纳批注建议</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <div class="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center text-white text-[9px]">王</div>
+          <span>王芳</span><span>·</span><span>今天 11:20</span>
+        </div>
+      </div>
+
+      <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="selectVersion(this)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-700">v6</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-1">补充第二章政治建设内容，完善经济数据</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <div class="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white text-[9px]">李</div>
+          <span>李华</span><span>·</span><span>昨天 17:45</span>
+        </div>
+      </div>
+
+      <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="selectVersion(this)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-700">v5</span>
+          <span class="badge badge-purple text-[10px]">AI生成</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-1">AI自动优化全文表达，润色处理</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <span class="material-symbols-outlined" style="font-size:13px;color:#7c3aed;">auto_fix_high</span>
+          <span>AI助手</span><span>·</span><span>昨天 15:10</span>
+        </div>
+      </div>
+
+      <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="selectVersion(this)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-700">v4</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-1">完成第一章综述编写，通过初审</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <div class="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white text-[9px]">陈</div>
+          <span>陈静</span><span>·</span><span>2024-11-07 09:30</span>
+        </div>
+      </div>
+
+      <div class="p-4 hover:bg-slate-50 cursor-pointer" onclick="selectVersion(this)">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-slate-700">v3</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-1">修正综述章节格式及错别字</p>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400">
+          <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[9px]">张</div>
+          <span>张明</span><span>·</span><span>2024-11-06 16:00</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 右侧版本预览 -->
+  <div class="flex-1 overflow-y-auto p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h3 class="text-sm font-semibold text-slate-800">v8 · 当前版本</h3>
+        <p class="text-xs text-slate-400 mt-0.5">张明 · 今天 14:32 · 完成第三章数据核查及修正</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="flex items-center gap-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50">
+          <span class="material-symbols-outlined" style="font-size:13px;">difference</span>与上一版对比
+        </button>
+        <button class="flex items-center gap-1 px-3 py-1.5 text-xs border border-amber-200 rounded-lg text-amber-600 hover:bg-amber-50">
+          <span class="material-symbols-outlined" style="font-size:13px;">restore</span>恢复此版本
+        </button>
+      </div>
+    </div>
+
+    <!-- 修改摘要 -->
+    <div class="bg-blue-50 rounded-xl border border-blue-100 p-4 mb-4">
+      <p class="text-xs font-medium text-blue-700 mb-2">本次修改摘要</p>
+      <div class="space-y-1.5 text-xs text-blue-600">
+        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>修改 GDP 数据：8,352亿元 → 8,426亿元</div>
+        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>修正财政收入数字：1,245亿元 → 1,268亿元</div>
+        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>新增农业总产值描述段落</div>
+        <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>删除重复表述 3 处</div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5 text-sm text-slate-700 leading-7">
+      <h3 class="text-base font-bold mb-4">2024年城市综合发展年鉴（第三章 经济发展节选）</h3>
+      <p class="mb-3">2024年，全市经济运行总体平稳，质量效益持续提升。全年实现地区生产总值（GDP）<strong>8,426亿元</strong>，按不变价格计算，同比增长5.8%，增速高于全省平均水平0.5个百分点。</p>
+      <p class="mb-3">全年一般公共预算收入<strong>1,268亿元</strong>，同比增长6.2%，其中税收收入985亿元，占比77.7%。财政支出结构持续优化，民生领域支出占比达72.3%。</p>
+      <p>农业经济平稳发展，全年农林牧渔业总产值<strong>486亿元</strong>，同比增长3.2%。粮食总产量达128万吨，连续多年保持稳定增长，农业现代化水平稳步提升。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function selectVersion(el){
+  document.querySelectorAll('.divide-y > div').forEach(d=>{
+    d.style.borderLeft=''; d.classList.remove('bg-blue-50');
+  });
+  el.style.borderLeft='3px solid #1a90ff';
+  el.classList.add('bg-blue-50');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>登录 - 智能年鉴编纂系统</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/style.css"/>
+<script>tailwind.config={theme:{extend:{colors:{primary:"#1a90ff"}}}}</script>
+<style>
+.login-bg {
+  background: linear-gradient(135deg, #0d1b2e 0%, #0f3460 50%, #0d1b2e 100%);
+  min-height: 100vh;
+}
+.pattern-overlay {
+  background-image: radial-gradient(circle at 20% 50%, rgba(26,144,255,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(26,144,255,0.06) 0%, transparent 40%);
+}
+.feature-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+</style>
+</head>
+<body class="login-bg">
+<div class="pattern-overlay min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-5xl flex rounded-2xl overflow-hidden shadow-2xl" style="min-height:580px;">
+
+    <!-- 左侧品牌区 -->
+    <div class="flex-1 p-12 flex flex-col justify-between" style="background:linear-gradient(160deg,#0a2047,#0f3460);">
+      <div>
+        <div class="flex items-center gap-3 mb-10">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+            <span class="material-symbols-outlined text-white icon-md">auto_stories</span>
+          </div>
+          <div>
+            <h1 class="text-white font-bold text-lg leading-tight">智能年鉴编纂系统</h1>
+            <p class="text-blue-300 text-xs">Intelligent Yearbook Compilation System</p>
+          </div>
+        </div>
+
+        <h2 class="text-white text-2xl font-semibold mb-3 leading-snug">数字化赋能<br/>地方志年鉴编纂</h2>
+        <p class="text-blue-200 text-sm mb-10 leading-relaxed">集资料管理、AI辅助生成、多人协同编纂、专业统稿于一体的综合年鉴编纂平台。</p>
+
+        <div>
+          <div class="feature-item">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(26,144,255,0.2);">
+              <span class="material-symbols-outlined text-blue-400" style="font-size:16px;">auto_fix_high</span>
+            </div>
+            <div>
+              <p class="text-white text-sm font-medium">AI 智能生成</p>
+              <p class="text-blue-300 text-xs mt-0.5">基于大语言模型，自动生成专业条目内容</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(26,144,255,0.2);">
+              <span class="material-symbols-outlined text-blue-400" style="font-size:16px;">group</span>
+            </div>
+            <div>
+              <p class="text-white text-sm font-medium">多人协同编纂</p>
+              <p class="text-blue-300 text-xs mt-0.5">支持任务指派、实时协作、版本追溯</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(26,144,255,0.2);">
+              <span class="material-symbols-outlined text-blue-400" style="font-size:16px;">rule</span>
+            </div>
+            <div>
+              <p class="text-white text-sm font-medium">专业质量管控</p>
+              <p class="text-blue-300 text-xs mt-0.5">数据检测、对比审阅、批注管理全流程质控</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-blue-400 text-xs">© 2024 智能年鉴编纂系统  版权所有</p>
+    </div>
+
+    <!-- 右侧登录表单 -->
+    <div class="bg-white flex flex-col justify-center p-12" style="width:420px;">
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">欢迎回来</h2>
+        <p class="text-slate-500 text-sm">请登录您的账号以继续使用</p>
+      </div>
+
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">用户名</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:18px;">person</span>
+          <input type="text" value="admin"
+                 class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                 placeholder="请输入用户名"/>
+        </div>
+      </div>
+
+      <div class="mb-5">
+        <label class="block text-sm font-medium text-slate-700 mb-1.5">密码</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="font-size:18px;">lock</span>
+          <input type="password" value="password123"
+                 class="w-full pl-10 pr-10 py-3 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                 placeholder="请输入密码"/>
+          <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined" style="font-size:18px;">visibility</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-6">
+        <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+          <input type="checkbox" checked class="rounded text-blue-600 w-4 h-4 border-slate-300"/>
+          <span>记住登录状态</span>
+        </label>
+        <a href="#" class="text-sm text-primary hover:text-blue-700 transition-colors">忘记密码？</a>
+      </div>
+
+      <a href="../index.html" class="block">
+        <button class="w-full py-3 rounded-xl text-white text-sm font-semibold transition-all hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98]"
+                style="background:linear-gradient(135deg,#1a90ff,#0059b3);">
+          立即登录
+        </button>
+      </a>
+
+      <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+        <p class="text-xs text-blue-700 font-medium mb-1">演示账号</p>
+        <p class="text-xs text-blue-600">用户名：admin &nbsp;|&nbsp; 密码：admin123</p>
+      </div>
+
+      <p class="text-center text-xs text-slate-400 mt-6">
+        如需注册账号，请联系系统管理员
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
